@@ -1,0 +1,245 @@
+/* ===== Base ===== */
+:root{
+  --bg:#ffffff;          /* רקע כללי */
+  --card:#ffffff;        /* כרטיסים */
+  --muted:#6b7280;       /* טקסט משני אפור */
+  --text:#111111;        /* טקסט ראשי */
+  --line:#e5e7eb;        /* קווי גבול עדינים */
+
+  --primary:#111111;     /* כפתור ראשי שחור */
+  --primary-2:#333333;
+  --danger:#111111;
+
+  --radius:16px;
+  --shadow: 0 8px 20px rgba(0,0,0,.06);
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family: "Noto Sans Hebrew", system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+  direction: rtl;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ===== Layout ===== */
+.container{
+  width: 100%;
+  max-width: none;      /* ✅ מבטל הגבלה */
+  margin: 0;            /* ✅ לא ממורכז */
+  padding: 22px 24px 40px;
+}
+
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.stack{ display:flex; flex-direction:column; gap:14px; }
+.row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.row-between{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+
+.h1{ font-size: 24px; margin:0; }
+.h2{ font-size: 18px; margin:0; opacity:.95; }
+.p{ margin:0; color: var(--muted); }
+
+/* ===== Navbar ===== */
+.navbar{
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.65);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 12px;
+}
+.nav-inner{
+  width: 100%;
+  max-width: none;  /* ✅ */
+  margin: 0;
+  padding: 0 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.nav-left{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.brand{
+  font-weight:800;
+  letter-spacing:.2px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(59,130,246,.15);
+  border: 1px solid rgba(59,130,246,.25);
+}
+.nav-links{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+a{ color: var(--text); text-decoration:none; }
+a.link{ color: #cfe0ff; }
+a.link:hover{ text-decoration: underline; }
+.nav-links a{
+  padding: 8px 10px;
+  border-radius: 12px;
+  color: var(--text);
+  border: 1px solid transparent;
+}
+.nav-links a:hover{
+  border-color: var(--line);
+  background: rgba(255,255,255,.03);
+}
+
+/* ===== Buttons ===== */
+.btn{
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.03);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.btn:hover{ background: rgba(255,255,255,.06); }
+.btn-primary{
+  background: #ffffff;
+  color: #0a0a0a;
+  border-color: rgba(255,255,255,.35);
+}
+.btn-primary:hover{ filter: brightness(0.95); }
+
+.btn-danger{
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.22);
+}
+.btn-danger:hover{ background: rgba(255,255,255,.12); }
+
+/* ===== Forms ===== */
+.form{
+  display:flex;
+  flex-direction:column;
+  gap: 12px;
+}
+.field{
+  display:flex;
+  flex-direction:column;
+  gap: 6px;
+}
+label{
+  font-size: 13px;
+  color: var(--muted);
+}
+.input, input, select, textarea{
+  width:100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.03);
+  color: var(--text);
+  outline: none;
+}
+input::placeholder, textarea::placeholder{ color: rgba(148,163,184,.75); }
+input:focus, select:focus, textarea:focus{
+  border-color: rgba(59,130,246,.55);
+  box-shadow: 0 0 0 3px rgba(59,130,246,.18);
+}
+
+/* ===== Tables ===== */
+.table{
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 14px;
+  overflow:hidden;
+  border: 1px solid var(--line);
+}
+.table th, .table td{
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.table th{
+  text-align: right;
+  color: var(--muted);
+  font-weight: 800;
+  background: rgba(255,255,255,.03);
+}
+.table tr:hover td{ background: rgba(255,255,255,.02); }
+
+/* ===== Alerts / Empty ===== */
+.alert{
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.03);
+  border-radius: 14px;
+  padding: 10px 12px;
+  color: var(--text);
+}
+.alert-error{
+  border-color: rgba(239,68,68,.35);
+  background: rgba(239,68,68,.10);
+}
+.empty{
+  border: 1px dashed rgba(148,163,184,.35);
+  border-radius: 14px;
+  padding: 16px;
+  color: var(--muted);
+}
+
+/* ===== Quote editor specific ===== */
+.editor-grid{
+  display:grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 14px;
+  align-items: start;
+}
+
+/* ✅ ב-RTL, column 1 הוא ימין ו-column 2 הוא שמאל.
+   אנחנו נשתמש ב-order על כרטיסים כדי לשלוט במיקום בלי לשבור HTML. */
+.editor-form { order: 1; }     /* ימין */
+.editor-preview { order: 2; }  /* שמאל */
+
+@media (max-width: 980px){
+  .editor-grid{ grid-template-columns: 1fr; }
+  .editor-form { order: 1; }
+  .editor-preview { order: 2; }
+}
+.previewBox{
+  min-height: 680px;
+  max-height: 78vh;
+  overflow: auto;
+  background: rgba(255,255,255,.02);
+}
+.container-wide{
+  width: 100%;
+  padding: 0 24px;
+}
+/* ===== Color Picker Square ===== */
+.color-picker{
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+  background: none;
+}
+
+/* מסיר padding פנימי מוזר בכרום */
+.color-picker::-webkit-color-swatch-wrapper{
+  padding: 0;
+}
+
+.color-picker::-webkit-color-swatch{
+  border: none;
+  border-radius: 10px;
+}
+
+/* פיירפוקס */
+.color-picker::-moz-color-swatch{
+  border: none;
+  border-radius: 10px;
+}

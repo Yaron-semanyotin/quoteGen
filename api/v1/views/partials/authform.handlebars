@@ -1,0 +1,20 @@
+<form class="form" method="post" action="{{action}}">
+  <div class="field">
+    <label>אימייל</label>
+    <input class="input" name="email" type="email" required placeholder="name@example.com" />
+  </div>
+
+  <div class="field">
+    <label>סיסמה</label>
+    <input class="input" name="password" type="password" required placeholder="••••••••" />
+  </div>
+
+  {{#if showConfirmPassword}}
+    <div class="field">
+      <label>אימות סיסמה</label>
+      <input class="input" name="confirmPassword" type="password" required placeholder="••••••••" />
+    </div>
+  {{/if}}
+
+  <button class="btn btn-primary" type="submit">{{buttonText}}</button>
+</form>

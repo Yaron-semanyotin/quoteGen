@@ -1,0 +1,18 @@
+<h1>הוספת מוצר</h1>
+
+{{#if error}}
+  <p style="color:red">{{error}}</p>
+{{/if}}
+
+<form method="post" action="/products">
+  <label>שם מוצר</label><br />
+  <input name="name" /><br /><br />
+
+  <label>מחיר</label><br />
+  <input name="price" type="number" step="0.01" /><br /><br />
+
+<label>יחידות</label><br />
+<input name="unit"><br />
+
+  <button type="submit">שמור</button>
+</form>

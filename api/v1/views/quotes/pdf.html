@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <!-- פונט עברי -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ===== Page (A4-like) ===== */
+    :root{
+      --theme: #1f2937;  /* צבע קו/דגש */
+      --text: #111;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --bg: #fff;
+      --pageW: 210mm;
+      --pageH: 297mm;
+      --pad: 16mm;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      background:#f3f4f6;
+      font-family: "Noto Sans Hebrew", Arial, sans-serif;
+      color:var(--text);
+      direction: rtl;
+    }
+
+    /* הדמיית דף A4 על המסך */
+    .page{
+      width: var(--pageW);
+      min-height: var(--pageH);
+      margin: 18px auto;
+      background: var(--bg);
+      padding: var(--pad);
+      box-shadow: 0 12px 30px rgba(0,0,0,.12);
+      border-radius: 10px;
+    }
+
+/* ===== Header ===== */
+.header{
+  position: relative;                 /* ✅ חובה בשביל absolute של הלוגו */
+  border-bottom: 2px solid var(--theme);
+  margin-bottom: 14px;
+
+  /* ✅ נותן מקום ללוגו בצד שמאל כדי שהטקסט לא "יעלה עליו" */
+  padding: 80px 12px 12px 120px;
+}
+
+/* ✅ הלוגו בפינה השמאלית העליונה */
+.logoCorner{
+  position: absolute;
+  top: 20px;                          /* מרווח מהקצה העליון */
+  left: 20px;                         /* ✅ פינה שמאלית */
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+  border: none;
+}
+
+.topRow{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.biz{
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.phone{
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.docTitle{
+  margin-top: 10px;                   /* ✅ קצת ריווח אחרי header */
+  opacity: .92;
+  font-size: 14px;
+}
+
+/* meta נשאר שמאל למי שתרצה להוסיף תאריך/מספר */
+.meta{
+  text-align:left;
+  white-space:nowrap;
+  font-size: 12px;
+  color: var(--muted);
+}
+.meta b{ color: var(--text); }
+
+
+    /* ===== Table ===== */
+    table{
+      width:100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 12.5px;
+      table-layout: fixed;
+    }
+
+    colgroup col:nth-child(1){ width:42%; }
+    colgroup col:nth-child(2){ width:10%; }
+    colgroup col:nth-child(3){ width:14%; }
+    colgroup col:nth-child(4){ width:17%; }
+    colgroup col:nth-child(5){ width:17%; }
+
+    th, td{
+      border-bottom: 1px solid var(--line);
+      padding: 8px;
+      vertical-align: top;
+      min-width: 0;
+    }
+    th{
+      background:#f9fafb;
+      font-weight:700;
+      color:#111;
+    }
+    td.text{
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    td.num{
+      white-space: nowrap;
+      text-align: right;
+    }
+
+    /* ===== Totals ===== */
+    .totals{
+      margin-top: 12px;
+      display:flex;
+      justify-content:flex-end; /* ✅ עכשיו זה יזוז לשמאל */
+    }
+    .totalBox{
+      min-width: 260px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      text-align:left;
+    }
+    .totalRow{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      font-size: 13px;
+      padding: 4px 0;
+    }
+    .totalRow strong{ font-size: 14px; }
+
+    /* ===== Footer ===== */
+    .footer{
+      margin-top: 18px;
+      border-top: 1px dashed var(--line);
+      padding-top: 10px;
+      color: var(--muted);
+      font-size: 11px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    /* Print */
+    @page { size: A4; margin: 0; }
+    @media print{
+      body{ background:#fff; }
+      .page{
+        margin: 0;
+        border-radius: 0;
+        box-shadow:none;
+        width: auto;
+        min-height: auto;
+        padding: var(--pad);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+<!-- ===== Header ===== -->
+<div class="header">
+  <!-- ✅ לוגו עגול בפינה שמאלית עליונה -->
+  <img class="logoCorner" src="/adorable-giant-panda.jpg" alt="logo" />
+
+  <div class="topRow">
+    <div>
+      <div class="biz">שם העסק כאן</div>
+      <div class="phone">טלפון : 050-111111</div>
+    </div>
+
+    <!-- ✅ כאן תשאיר את meta אם תרצה בעתיד (תאריך/מספר הצעה),
+         כרגע ריק – אפשר למחוק לגמרי אם לא צריך -->
+    <div class="meta">
+      <!-- תאריך: <b>2026-02-21</b><br>
+      מס׳ הצעה: <b>#0001</b> -->
+    </div>
+  </div>
+</div>
+
+<div class="docTitle">הצעת מחיר — כותרת כאן</div>
+
+    <!-- ===== Table ===== -->
+    <table>
+      <colgroup>
+        <col><col><col><col><col>
+      </colgroup>
+      <thead>
+        <tr>
+          <th>מוצר</th>
+          <th>כמות</th>
+          <th>יחידה</th>
+          <th>מחיר</th>
+          <th>סה״כ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="text">שירות התקנה + הגדרה מלאה + תמיכה</td>
+          <td class="num">1</td>
+          <td class="text">פרויקט</td>
+          <td class="num">450.00</td>
+          <td class="num">450.00</td>
+        </tr>
+        <tr>
+          <td class="text">פריט עם טקסט ממש ממש ממש ארוך כדי לבדוק שבירת שורה ולא דחיפה של שאר העמודות</td>
+          <td class="num">3</td>
+          <td class="text">יחידה</td>
+          <td class="num">99.90</td>
+          <td class="num">299.70</td>
+        </tr>
+        <tr>
+          <td class="text">עבודה לפי שעה</td>
+          <td class="num">2</td>
+          <td class="text">שעה</td>
+          <td class="num">120.00</td>
+          <td class="num">240.00</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ===== Totals ===== -->
+    <div class="totals">
+      <div class="totalBox">
+        <div class="totalRow"><span>סכום ביניים</span><span>989.70</span></div>
+        <div class="totalRow"><span>מע״מ (0%)</span><span>0.00</span></div>
+        <div class="totalRow"><strong>סה״כ לתשלום</strong><strong>989.70</strong></div>
+      </div>
+    </div>
+
+    <!-- ===== Footer ===== -->
+    <div class="footer">
+      <div>הערות: המחירים כוללים מע״מ.</div>
+      <div>© שם העסק</div>
+    </div>
+
+  </div>
+</body>
+</html>

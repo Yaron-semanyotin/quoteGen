@@ -1,0 +1,35 @@
+<div class="row-between">
+  <div>
+    <h1 class="h1">המוצרים שלי</h1>
+    <p class="p">ניהול מוצרים </p>
+  </div>
+  <a class="btn btn-primary" href="/products/new">+ הוסף מוצר</a>
+</div>
+
+<br/>
+
+{{#if products.length}}
+  <table class="table">
+    <tr>
+      <th>שם</th>
+      <th>מחיר</th>
+      <th>יחידה</th>
+      <th>פעולות</th>
+    </tr>
+    {{#each products}}
+      <tr>
+        <td>{{this.name}}</td>
+        <td>{{this.price}}</td>
+        <td>{{this.unit}}</td>
+        <td>
+          <a class="btn" href="/products/{{this._id}}/edit">עריכה</a>
+          <form method="post" action="/products/{{this._id}}/delete" style="display:inline;">
+            <button class="btn btn-danger" type="submit">מחיקה</button>
+          </form>
+        </td>
+      </tr>
+    {{/each}}
+  </table>
+{{else}}
+  <div class="empty">אין מוצרים עדיין. לחץ “הוסף מוצר”.</div>
+{{/if}}

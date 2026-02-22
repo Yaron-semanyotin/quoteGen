@@ -1,0 +1,92 @@
+<div class="container-wide">
+
+<div class="row-between">
+  <div>
+    <h1 class="h1">{{#if isEdit}}עריכת הצעת מחיר{{else}}יצירת הצעת מחיר{{/if}}</h1>
+    <p class="p">הכל נשמר כטיוטה. אפשר לחזור ולערוך בכל זמן.</p>
+  </div>
+</div>
+
+<br/>
+
+<div class="editor-grid">
+  <div class="card">
+    <form class="form" method="post" action="{{#if isEdit}}/quotes/{{quote._id}}{{else}}/quotes{{/if}}" id="quoteForm">
+
+      <div class="field">
+        <label>שם העסק</label>
+        <input class="input" name="businessName" value="{{quote.businessName}}" />
+      </div>
+
+      <div class="field">
+        <label>כותרת</label>
+        <input class="input" name="title" value="{{quote.title}}" />
+      </div>
+
+      <div class="field">
+        <label>תאריך</label>
+        <input class="input" name="quoteDate" value="{{quote.quoteDate}}" placeholder="2026-02-10" />
+      </div>
+
+      <div class="field">
+        <label>תבנית</label>
+        <select class="input" name="templateKey">
+          <option value="sandbox" {{#if (eq quote.templateKey "sandbox")}}selected{{/if}}>Sandbox</option>
+          <option value="classic" {{#if (eq quote.templateKey "classic")}}selected{{/if}}>Classic</option>
+          <option value="clean" {{#if (eq quote.templateKey "clean")}}selected{{/if}}>Clean</option>
+          <option value="modern" {{#if (eq quote.templateKey "modern")}}selected{{/if}}>Modern</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>צבע</label>
+        <input class="color-picker" name="themeColor" type="color" value="{{quote.themeColor}}" />
+      </div>
+
+      {{!-- <div class="field">
+        <label>Logo URL (בינתיים)</label>
+        <input class="input" name="logoUrl" value="{{quote.logoUrl}}" />
+      </div> --}}
+
+      <hr style="border:0;border-top:1px solid rgba(148,163,184,.18)"/>
+
+      <div class="row-between">
+        <h2 class="h2">שורות</h2>
+        <button class="btn" type="button" id="addItemBtn">+ הוסף שורה</button>
+      </div>
+
+      <div id="itemsArea"></div>
+
+      <input type="hidden" name="itemsJson" id="itemsJson" />
+      <input type="hidden" name="action" id="actionField" value="save" />
+
+      <div class="row">
+        <button class="btn" type="submit" onclick="document.getElementById('actionField').value='save'">
+          שמור טיוטה
+        </button>
+
+        <button class="btn btn-primary" type="submit" onclick="document.getElementById('actionField').value='saveAndPdf'">
+          שמור + הורד PDF
+        </button>
+
+        {{#if isEdit}}
+          <a class="btn" href="/quotes/{{quote._id}}/pdf" target="_blank">📄 הורד PDF</a>
+        {{/if}}
+        
+      </div>
+    </form>
+  </div>
+
+  <div class="card editor-form">
+    <div class="row-between">
+      <h2 class="h2">תצוגה מקדימה</h2>
+      <span class="p">Live Preview</span>
+    </div>
+    <div id="previewBox" class="previewBox" style="margin-top:12px;"></div>
+  </div>
+</div>
+</div>
+<script>
+  window.__QUOTE__ = {{{json quote}}};
+</script>
+<script src="/js/quote-editor.js"></script>

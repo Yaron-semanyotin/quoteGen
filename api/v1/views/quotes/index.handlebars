@@ -1,0 +1,33 @@
+<h1>הצעות מחיר</h1>
+
+<p><a class="btn btn-primary" href="/quotes/new">צור הצעת מחיר חדשה</a></p>
+
+{{#if quotes.length}}
+  <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:10px;">
+    {{#each quotes}}
+      <li class="card" style="padding:12px;">
+        <div class="row-between">
+          <div>
+            <b>{{this.title}}</b>
+            <div class="p" style="margin-top:4px;">
+              {{this.quoteDate}} · {{this.status}} · #{{pad4 this.quoteNumber}}
+            </div>
+          </div>
+
+          <div class="row">
+            <a class="btn" href="/quotes/{{this._id}}/edit">עריכה</a>
+
+            <form method="post" action="/quotes/{{this._id}}/delete" style="display:inline;">
+              <button class="btn btn-danger" type="submit"
+                onclick="return confirm('למחוק את הצעת המחיר הזאת?');">
+                מחיקה
+              </button>
+            </form>
+          </div>
+        </div>
+      </li>
+    {{/each}}
+  </ul>
+{{else}}
+  <p>עדיין אין הצעות מחיר.</p>
+{{/if}}

@@ -1,0 +1,14 @@
+<div class="stack">
+  <h1 class="h1">התחברות</h1>
+  <p class="p">ברוך הבא. התחבר כדי להמשיך.</p>
+
+  {{#if error}}
+    <div class="alert alert-error">{{error}}</div>
+  {{/if}}
+
+  {{> authform action="/auth/login" buttonText="התחבר" showConfirmPassword=false}}
+
+  <p class="p">
+    אין לך חשבון? <a class="link" href="/auth/register">להרשמה</a>
+  </p>
+</div>

@@ -1,0 +1,24 @@
+<nav class="navbar">
+  <div class="nav-inner">
+    <div class="nav-left">
+      <div class="brand">Quote Generator</div>
+
+      <div class="nav-links">
+        {{#if isLoggedIn}}
+          <a href="/quotes">הצעות מחיר</a>
+          <a href="/products">מוצרים</a>
+          <a href="/auth/settings">הגדרות עסק</a>
+        {{else}}
+          <a href="/auth/login">התחברות</a>
+          <a href="/auth/register">הרשמה</a>
+        {{/if}}
+      </div>
+    </div>
+
+    {{#if isLoggedIn}}
+      <form method="post" action="/auth/logout">
+        <button class="btn btn-danger" type="submit">התנתק</button>
+      </form>
+    {{/if}}
+  </div>
+</nav>

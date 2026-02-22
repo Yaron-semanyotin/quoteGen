@@ -1,0 +1,14 @@
+<div class="stack">
+  <h1 class="h1">הרשמה</h1>
+  <p class="p">פתח חשבון כדי להתחיל ליצור הצעות מחיר.</p>
+
+  {{#if error}}
+    <div class="alert alert-error">{{error}}</div>
+  {{/if}}
+
+  {{> authform action="/auth/register" buttonText="הירשם" showConfirmPassword=true}}
+
+  <p class="p">
+    כבר יש לך חשבון? <a class="link" href="/auth/login">להתחברות</a>
+  </p>
+</div>
