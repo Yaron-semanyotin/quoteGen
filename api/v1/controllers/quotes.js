@@ -43,11 +43,13 @@ function pad4(n) {
 
 function resolvePdfView(templateKey) {
   switch (templateKey) {
-    case 'sandbox': return 'quotes/pdf-sandbox';
-    case 'clean': return 'quotes/pdf-clean';
-    case 'modern': return 'quotes/pdf-modern';
-    case 'classic':
-    default: return 'quotes/pdf-classic';
+    case 'sandbox':
+      return 'quotes/pdf-sandbox';
+    case 'modern':
+      return 'quotes/pdf-modern';
+    default:
+      // ✅ חשוב: אם יש הצעות ישנות שנשמרו classic/clean — לא נשבור
+      return 'quotes/pdf-sandbox';
   }
 }
 
@@ -101,7 +103,7 @@ const quotesCtrl = {
         themeColor: user?.themeColor || '#1f2937',
         logoUrl: user?.logoPath || '',
         items: [],
-        templateKey: 'classic',
+        templateKey: 'sandbox',
         status: 'draft',
       },
       isEdit: false,

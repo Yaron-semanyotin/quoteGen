@@ -19,7 +19,7 @@ const quoteSchema = new mongoose.Schema(
     phone: { type: String, default: '', trim: true },
     title: {type: String, default: 'הצעת מחיר', trim: true},
     quoteDate: {type: String, default: ''},
-    templateKey: { type: String, enum: ['classic', 'clean', 'modern', 'sandbox'], default: 'classic' },
+    templateKey: { type: String, enum: ['modern', 'sandbox'], default: 'sandbox' },
 
 
     themeColor: {type: String, default: '#1f2937'},

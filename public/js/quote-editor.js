@@ -14,14 +14,46 @@
   }
 
   // =========================
-  // Items
+  // Helpers
+  // =========================
+  function escapeHtml(str) {
+    return String(str ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  function formatMoney(n) {
+    const num = Number(n);
+    const safe = Number.isFinite(num) ? num : 0;
+    return `${safe.toFixed(2)} ₪`;
+  }
+
+  function toNumberOr(val, fallback) {
+    const n = Number(val);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function clampMin(n, min) {
+    const x = Number.isFinite(n) ? n : min;
+    return x < min ? min : x;
+  }
+
+  function syncHiddenItemsJson() {
+    itemsJsonInput.value = JSON.stringify(items);
+  }
+
+  // =========================
+  // Items UI
   // =========================
   function addItem(defaults = {}) {
     items.push({
-      name: defaults.name || '',
-      qty: Number(defaults.qty ?? 1),
-      unit: defaults.unit || 'יחידה',
-      price: Number(defaults.price ?? 0),
+      name: String(defaults.name || ''),
+      qty: clampMin(toNumberOr(defaults.qty ?? 1, 1), 0),
+      unit: String(defaults.unit || 'יחידה'),
+      price: clampMin(toNumberOr(defaults.price ?? 0, 0), 0),
     });
     render();
   }
@@ -50,7 +82,20 @@
             style="width:100%; min-width:0;"
           />
           <div data-suggest="${idx}"
-               style="position:absolute;top:100%;right:0;left:0;background:#fff;border:1px solid #fff;display:none;z-index:50;"></div>
+               style="
+                 position:absolute;
+                 top:100%;
+                 right:0;
+                 left:0;
+                 background:#fff;
+                 border:1px solid #e5e7eb;
+                 border-radius:10px;
+                 box-shadow:0 10px 22px rgba(0,0,0,.08);
+                 overflow:hidden;
+                 display:none;
+                 z-index:50;
+               ">
+          </div>
         </div>
 
         <input data-field="qty" data-idx="${idx}"
@@ -65,7 +110,7 @@
                type="number" min="0" step="0.01" value="${it.price}"
                style="width:100%; min-width:0;" />
 
-        <button type="button" data-action="remove" data-idx="${idx}">X</button>
+        <button type="button" class="btn btn-danger" data-action="remove" data-idx="${idx}">✕</button>
       `;
 
       itemsArea.appendChild(row);
@@ -73,27 +118,22 @@
   }
 
   // =========================
-  // Preview
+  // Preview (ONLY sandbox + modern)
   // =========================
   function renderPreview() {
-    const templateKey = form.elements.templateKey?.value || 'classic';
+    // ✅ נשאר רק sandbox/modern
+    const rawTemplateKey = form.elements.templateKey?.value || 'sandbox';
+    const templateKey = rawTemplateKey === 'modern' ? 'modern' : 'sandbox';
 
     const businessName = form.elements.businessName?.value || '';
     const title = form.elements.title?.value || 'הצעת מחיר';
     const quoteDate = form.elements.quoteDate?.value || '';
     const themeColor = form.elements.themeColor?.value || '#1f2937';
-    const logoUrl = quote.logoUrl || '';
 
-    // ✅ מגיע מהשרת (הגדרות משתמש) — לא מהטופס
+    // ✅ מגיע מהשרת (הגדרות משתמש)
+    const logoUrl = String(quote.logoUrl || '').trim();
     const slogan = String(quote.slogan || '').trim();
     const phone = String(quote.phone || '').trim();
-
-    const logoHtml = logoUrl
-      ? `<img class="logo" src="${escapeHtml(logoUrl)}" alt="logo" />`
-      : '';
-
-    const sloganHtml = slogan ? `<div class="slogan">${escapeHtml(slogan)}</div>` : '';
-    const phoneHtml = phone ? `<div class="phone">טלפון: ${escapeHtml(phone)}</div>` : '';
 
     const total = items.reduce(
       (sum, it) => sum + (Number(it.qty) || 0) * (Number(it.price) || 0),
@@ -102,26 +142,36 @@
 
     const rowsHtml = items.length
       ? items
-          .map(
-            (it) => `
-            <tr>
-              <td class="cell-name">${escapeHtml(it.name)}</td>
-              <td class="cell-num">${Number(it.qty) || 0}</td>
-              <td class="cell-unit">${escapeHtml(it.unit)}</td>
-              <td class="cell-num">${formatMoney(it.price)}</td>
-              <td class="cell-num">${formatMoney((Number(it.qty) || 0) * (Number(it.price) || 0))}</td>
-            </tr>
-          `
-          )
+          .map((it) => {
+            const qty = Number(it.qty) || 0;
+            const price = Number(it.price) || 0;
+            return `
+              <tr>
+                <td class="cell-name">${escapeHtml(it.name)}</td>
+                <td class="cell-num">${qty}</td>
+                <td class="cell-unit">${escapeHtml(it.unit)}</td>
+                <td class="cell-num">${formatMoney(price)}</td>
+                <td class="cell-num">${formatMoney(qty * price)}</td>
+              </tr>
+            `;
+          })
           .join('')
       : `<tr><td colspan="5" class="emptyRow">אין שורות</td></tr>`;
 
+    const sloganHtml = slogan ? `<div class="slogan">${escapeHtml(slogan)}</div>` : '';
+    const phoneHtml = phone ? `<div class="phone">טלפון: ${escapeHtml(phone)}</div>` : '';
+
     const root = previewBox.shadowRoot || previewBox.attachShadow({ mode: 'open' });
 
+    // ===== Sandbox =====
     const sandboxHtml = `
       <div class="page">
         <div class="header">
-          ${logoUrl ? `<img class="logoCorner" src="${escapeHtml(logoUrl)}" alt="logo" />` : ''}
+          ${
+            logoUrl
+              ? `<img class="logoCorner" src="${escapeHtml(logoUrl)}" alt="logo" />`
+              : ''
+          }
 
           <div class="topRow">
             <div>
@@ -165,39 +215,18 @@
       </div>
     `;
 
-    const classicOrClean = `
-      <div class="wrap">
-        <div class="topRow">
-          <div>
-            ${logoHtml}
-            <div class="biz">${escapeHtml(businessName)}</div>
-            ${sloganHtml}
-            ${phoneHtml}
-            <div class="title">${escapeHtml(title)}</div>
-          </div>
-          <div class="date">${escapeHtml(quoteDate)}</div>
-        </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th>מוצר</th><th>כמות</th><th>יחידה</th><th>מחיר</th><th>סה״כ</th>
-            </tr>
-          </thead>
-          <tbody>${rowsHtml}</tbody>
-        </table>
-
-        <div class="total">סה״כ לתשלום: ${formatMoney(total)}</div>
-      </div>
-    `;
-
-    const modern = `
+    // ===== Modern =====
+    const modernHtml = `
       <div class="card">
         <div class="band"></div>
 
         <div class="topRow">
           <div>
-            ${logoHtml}
+            ${
+              logoUrl
+                ? `<img class="logo" src="${escapeHtml(logoUrl)}" alt="logo" />`
+                : ''
+            }
             <div class="biz">${escapeHtml(businessName)}</div>
             ${sloganHtml}
             ${phoneHtml}
@@ -243,9 +272,9 @@
         th, td { padding:8px; vertical-align:top; min-width:0; }
 
         .slogan { margin-top: 4px; font-size: 13px; opacity: .85; }
-        .phone { margin-top: 2px; font-size: 13px; font-weight: 700; opacity: .95; }
+        .phone  { margin-top: 2px; font-size: 13px; font-weight: 700; opacity: .95; }
 
-        /* ===== Classic/Clean/Modern ===== */
+        /* ===== Modern ===== */
         .qprev{
           font-family: "Noto Sans Hebrew", Arial, sans-serif;
           direction: rtl;
@@ -262,14 +291,6 @@
         .qprev .total{ margin-top:12px; font-weight:700; font-size:14px; text-align:left; }
 
         .qprev .logo{ max-height:50px; max-width:140px; object-fit:contain; display:block; margin-bottom:8px; }
-
-        .qprev.classic .wrap{ border-right:6px solid ${themeColor}; padding-right:12px; }
-        .qprev.classic th, .qprev.classic td{ border:1px solid #ddd; }
-        .qprev.classic th{ background:#f7f7f7; font-weight:700; }
-
-        .qprev.clean .wrap{ padding:8px 0 12px; border-bottom:2px solid #111; }
-        .qprev.clean th, .qprev.clean td{ border-bottom:1px solid #e5e5e5; }
-        .qprev.clean th{ font-weight:700; text-align:right; }
 
         .qprev.modern .card{ border:1px solid #e5e7eb; border-radius:14px; padding:16px; }
         .qprev.modern .band{ height:10px; border-radius:10px; background:${themeColor}; margin-bottom:14px; }
@@ -330,18 +351,11 @@
       </style>
 
       ${
-        templateKey === 'sandbox'
-          ? `<div class="sandbox">${sandboxHtml}</div>`
-          : `<div class="qprev ${templateKey}">${templateKey === 'modern' ? modern : classicOrClean}</div>`
+        templateKey === 'modern'
+          ? `<div class="qprev modern">${modernHtml}</div>`
+          : `<div class="sandbox">${sandboxHtml}</div>`
       }
     `;
-  }
-
-  // =========================
-  // Sync hidden JSON
-  // =========================
-  function syncHiddenItemsJson() {
-    itemsJsonInput.value = JSON.stringify(items);
   }
 
   function render() {
@@ -351,45 +365,10 @@
   }
 
   // =========================
-  // Events
-  // =========================
-  addItemBtn.addEventListener('click', () => addItem());
-
-  itemsArea.addEventListener('input', (e) => {
-    const el = e.target;
-    const idx = Number(el.dataset.idx);
-    const field = el.dataset.field;
-    if (Number.isNaN(idx) || !field) return;
-
-    if (field === 'qty' || field === 'price') items[idx][field] = Number(el.value);
-    else items[idx][field] = el.value;
-
-    renderPreview();
-    syncHiddenItemsJson();
-  });
-
-  itemsArea.addEventListener('click', (e) => {
-    const el = e.target;
-    if (el.dataset.action !== 'remove') return;
-
-    const idx = Number(el.dataset.idx);
-    if (Number.isNaN(idx)) return;
-
-    items.splice(idx, 1);
-    render();
-  });
-
-  form.addEventListener('input', () => renderPreview());
-  form.addEventListener('change', () => renderPreview());
-
-  form.addEventListener('submit', () => {
-    syncHiddenItemsJson();
-  });
-
-  // =========================
-  // Autocomplete (נשאר כמו אצלך)
+  // Autocomplete
   // =========================
   let suggestTimer = null;
+  let lastSuggestIdx = null;
 
   function fetchSuggestions(q, cb) {
     fetch(`/products/search?q=${encodeURIComponent(q)}`, {
@@ -406,89 +385,168 @@
       .catch(() => cb([]));
   }
 
+  function getSuggestBox(idx) {
+    return itemsArea.querySelector(`[data-suggest="${idx}"]`);
+  }
+
+  function hideSuggestions(idx) {
+    const box = getSuggestBox(idx);
+    if (!box) return;
+    box.style.display = 'none';
+    box.innerHTML = '';
+    if (lastSuggestIdx === idx) lastSuggestIdx = null;
+  }
+
+  function hideAllSuggestions() {
+    if (lastSuggestIdx !== null) hideSuggestions(lastSuggestIdx);
+    lastSuggestIdx = null;
+  }
+
   function showSuggestions(idx, list) {
-    const box = document.querySelector(`[data-suggest="${idx}"]`);
+    const box = getSuggestBox(idx);
     if (!box) return;
 
-    if (!list.length) {
-      box.style.display = 'none';
-      box.innerHTML = '';
+    if (!Array.isArray(list) || list.length === 0) {
+      hideSuggestions(idx);
       return;
     }
 
     box.innerHTML = list
       .map(
         (p) => `
-          <div data-pick="${idx}" data-id="${p._id}"
+          <div data-pick="${idx}"
+               data-id="${p._id}"
                data-name="${escapeHtml(p.name)}"
                data-price="${p.price}"
                data-unit="${escapeHtml(p.unit)}"
-               style="padding:8px;cursor:pointer;border-bottom:1px solid #eee;">
+               style="padding:10px 10px;cursor:pointer;border-bottom:1px solid #f1f5f9;">
             <b>${escapeHtml(p.name)}</b>
-            <span style="opacity:.7"> — ${p.price} / ${escapeHtml(p.unit)}</span>
+            <span style="opacity:.7"> — ${Number(p.price).toFixed(2)} ₪ / ${escapeHtml(p.unit)}</span>
           </div>
         `
       )
       .join('');
 
     box.style.display = 'block';
+    lastSuggestIdx = idx;
   }
 
+  // =========================
+  // Events
+  // =========================
+  addItemBtn.addEventListener('click', () => addItem());
+
+  // שינויי ערכים + autocomplete באותו listener (מונע כפילויות)
   itemsArea.addEventListener('input', (e) => {
     const el = e.target;
-    if (el.dataset.field !== 'name') return;
 
     const idx = Number(el.dataset.idx);
-    if (Number.isNaN(idx)) return;
+    const field = el.dataset.field;
 
-    const q = String(el.value || '').trim();
-    clearTimeout(suggestTimer);
+    // אם זה לא אחד השדות - לא נוגעים
+    if (!Number.isFinite(idx) || !field) return;
 
-    if (q.length < 2) {
-      showSuggestions(idx, []);
+    if (!items[idx]) return;
+
+    // 1) עדכון item
+    if (field === 'qty') {
+      const val = el.value === '' ? 0 : clampMin(toNumberOr(el.value, 0), 0);
+      items[idx].qty = val;
+      renderPreview();
+      syncHiddenItemsJson();
       return;
     }
 
-    suggestTimer = setTimeout(() => {
-      fetchSuggestions(q, (list) => showSuggestions(idx, list));
-    }, 200);
+    if (field === 'price') {
+      const val = el.value === '' ? 0 : clampMin(toNumberOr(el.value, 0), 0);
+      items[idx].price = val;
+      renderPreview();
+      syncHiddenItemsJson();
+      return;
+    }
+
+    if (field === 'unit') {
+      items[idx].unit = String(el.value ?? '');
+      renderPreview();
+      syncHiddenItemsJson();
+      return;
+    }
+
+    if (field === 'name') {
+      items[idx].name = String(el.value ?? '');
+      renderPreview();
+      syncHiddenItemsJson();
+
+      // 2) autocomplete
+      const q = String(el.value || '').trim();
+      clearTimeout(suggestTimer);
+
+      if (q.length < 2) {
+        hideSuggestions(idx);
+        return;
+      }
+
+      suggestTimer = setTimeout(() => {
+        fetchSuggestions(q, (list) => showSuggestions(idx, list));
+      }, 200);
+
+      return;
+    }
   });
 
   itemsArea.addEventListener('click', (e) => {
+    // מחיקה
+    const removeBtn = e.target.closest('[data-action="remove"]');
+    if (removeBtn) {
+      const idx = Number(removeBtn.dataset.idx);
+      if (!Number.isFinite(idx)) return;
+      items.splice(idx, 1);
+      hideAllSuggestions();
+      render();
+      return;
+    }
+
+    // בחירת suggestion
     const pick = e.target.closest('[data-pick]');
-    if (!pick) return;
+    if (pick) {
+      const idx = Number(pick.dataset.pick);
+      if (!Number.isFinite(idx) || !items[idx]) return;
 
-    const idx = Number(pick.dataset.pick);
-    if (Number.isNaN(idx)) return;
+      items[idx].name = pick.dataset.name || '';
+      items[idx].price = clampMin(toNumberOr(pick.dataset.price, 0), 0);
+      items[idx].unit = pick.dataset.unit || 'יחידה';
 
-    items[idx].name = pick.dataset.name || '';
-    items[idx].price = Number(pick.dataset.price) || 0;
-    items[idx].unit = pick.dataset.unit || 'יחידה';
+      hideSuggestions(idx);
 
-    showSuggestions(idx, []);
-    render();
+      // לא render מלא כדי לא “לקפוץ” בזמן כתיבה — אבל פה כן כדאי לרנדר הכל כדי לעדכן input values
+      render();
+      return;
+    }
+  });
+
+  // סגירת suggestions בלחיצה מחוץ לשורות
+  document.addEventListener('click', (e) => {
+    if (!itemsArea.contains(e.target)) hideAllSuggestions();
+  });
+
+  // Escape סוגר suggestions
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideAllSuggestions();
+  });
+
+  // שינויי טופס (template/color/title/date וכו') רק preview
+  form.addEventListener('input', () => renderPreview());
+  form.addEventListener('change', () => renderPreview());
+
+  form.addEventListener('submit', () => {
+    hideAllSuggestions();
+    syncHiddenItemsJson();
   });
 
   // =========================
   // Init
   // =========================
+  // אם אין פריטים - נוסיף אחד
   if (items.length === 0) addItem();
   else render();
-
-  // =========================
-  // Helpers
-  // =========================
-function formatMoney(n) {
-  const num = Number(n) || 0;
-  return `${num.toFixed(2)} ₪`;
-}
-
-  function escapeHtml(str) {
-    return String(str ?? '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#039;');
-  }
 })();

@@ -1,6 +1,6 @@
 <h1>הצעות מחיר</h1>
 
-<p><a class="btn btn-primary" href="/quotes/new">צור הצעת מחיר חדשה</a></p>
+<p><a class="btn btn-primary" href="/quotes/new">ליצירת הצעת מחיר חדשה לחץ כאן</a></p>
 
 {{#if quotes.length}}
   <ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:10px;">
@@ -10,7 +10,7 @@
           <div>
             <b>{{this.title}}</b>
             <div class="p" style="margin-top:4px;">
-              {{this.quoteDate}} · {{this.status}} · #{{pad4 this.quoteNumber}}
+              {{this.quoteDate}} · #{{pad4 this.quoteNumber}}
             </div>
           </div>
 

@@ -30,12 +30,10 @@
 
       <div class="field">
         <label>תבנית</label>
-        <select class="input" name="templateKey">
-          <option value="sandbox" {{#if (eq quote.templateKey "sandbox")}}selected{{/if}}>Sandbox</option>
-          <option value="classic" {{#if (eq quote.templateKey "classic")}}selected{{/if}}>Classic</option>
-          <option value="clean" {{#if (eq quote.templateKey "clean")}}selected{{/if}}>Clean</option>
-          <option value="modern" {{#if (eq quote.templateKey "modern")}}selected{{/if}}>Modern</option>
-        </select>
+          <select class="input" name="templateKey">
+            <option value="sandbox" {{#if (eq quote.templateKey "sandbox")}}selected{{/if}}>Sandbox</option>
+            <option value="modern" {{#if (eq quote.templateKey "modern")}}selected{{/if}}>Modern</option>
+          </select>
       </div>
 
       <div class="field">

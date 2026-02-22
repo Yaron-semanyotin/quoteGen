@@ -107,15 +107,15 @@ a.link:hover{ text-decoration: underline; }
 }
 .btn:hover{ background: rgba(255,255,255,.06); }
 .btn-primary{
-  background: #ffffff;
+  background: #08fc0091;
   color: #0a0a0a;
-  border-color: rgba(255,255,255,.35);
+  border-color: var(--line);
 }
 .btn-primary:hover{ filter: brightness(0.95); }
 
 .btn-danger{
   background: rgba(255,255,255,.08);
-  border-color: rgba(255,255,255,.22);
+  border-color: rgba(255, 0, 0, 0.22);
 }
 .btn-danger:hover{ background: rgba(255,255,255,.12); }
 
