@@ -1,21 +1,28 @@
-(() => {
+// api/v1/public/js quote-editor.js
+
+(() => { // ולהריץ את הסקריפט מיד כשהדף נטען scope פונקציה שפועלת ישר עוטפת את כל הקוד כדי
+  // מהשרת window.__QUOTE__ קולט את
   const quote = window.__QUOTE__ || {};
+  // בצורה בטוחה גם אם הנתונים חסרים / שגויים items ומאתחל מערך
   const items = Array.isArray(quote.items) ? quote.items : [];
 
+  // כדי שיוכל לדעת מתי הטופס משתנה id תופס את כל האלמנטים לפי
   const form = document.getElementById('quoteForm');
   const itemsArea = document.getElementById('itemsArea');
   const addItemBtn = document.getElementById('addItemBtn');
   const itemsJsonInput = document.getElementById('itemsJson');
   const previewBox = document.getElementById('previewBox');
 
+  // הקוד היה נשבר אז במקום זאת הוא מדפיס שגיאה לקונסיל ועוצר id או שונה html אם בטעות נמחק אלמנט מה
   if (!form || !itemsArea || !addItemBtn || !itemsJsonInput || !previewBox) {
     console.error('Missing editor elements in DOM');
     return;
   }
 
-  // =========================
+
   // Helpers
-  // =========================
+
+  // dom כדי למנוע שבירת html פונקציה שמנקה טקסט שהמשתמש הכניס לפני שמכניסים אותו ל
   function escapeHtml(str) {
     return String(str ?? '')
       .replaceAll('&', '&amp;')
@@ -24,43 +31,53 @@
       .replaceAll('"', '&quot;')
       .replaceAll("'", '&#039;');
   }
-
+  // פונקציה לפורמט אחיד לכסף ממיר ערך למספר אם זה לא מספר תקין מחזיר 0 מציג תמיד מספר עם 2 ספרות אחרי הנקודה וסימן של שקל
   function formatMoney(n) {
     const num = Number(n);
     const safe = Number.isFinite(num) ? num : 0;
     return `${safe.toFixed(2)} ₪`;
   }
-
+  // פונקציות המרה לולידציה tonumberor + clapmin
+  // fallback מנסה להפוך למספר אם נכשל מחזיר
   function toNumberOr(val, fallback) {
     const n = Number(val);
     return Number.isFinite(n) ? n : fallback;
   }
-
+  // מבטיח שהמספר לא ירד מתחת למינימום למשל אם המינימום 0 ומישהו מקליד -5 אז זה מחזיר ל0
   function clampMin(n, min) {
     const x = Number.isFinite(n) ? n : min;
     return x < min ? min : x;
   }
-
+  // post כדי שהשרת יקבל את כל השורות בבקשת  itemJson נסתר input לתוך items מסנכרן את המרך
+  // js במערך items רגיל אז מחזיקים html השרת לא יודע לקבל מערך ישירות מטופס
+  // json נסתר כטקסט input לפני שמגישים טופס שמים אותו בתוך
+  // הופך אותו חזרה למערך parseItems() ו string מגיע כ req.body.itemsJson ואז בשרת
   function syncHiddenItemsJson() {
     itemsJsonInput.value = JSON.stringify(items);
   }
 
-  // =========================
+
+
   // Items UI
-  // =========================
+
+  // preview וב ui עם ערכי ברירת מחדל ואז מרנדר מחדש את ה items מוסיף שורה חדשה ל
   function addItem(defaults = {}) {
-    items.push({
-      name: String(defaults.name || ''),
+    items.push({ // push מוסיף שורה חדשה למערך
+      name: String(defaults.name || ''), // כל שדה מקבל ברירת מחדל
       qty: clampMin(toNumberOr(defaults.qty ?? 1, 1), 0),
-      unit: String(defaults.unit || 'יחידה'),
+      unit: String(defaults.unit || '1'),
       price: clampMin(toNumberOr(defaults.price ?? 0, 0), 0),
     });
-    render();
+    render(); // itemsJson ולכדען preview לעדכן htlp כדי לייצר מחדש את השורות ב
   }
 
+  // items מרנדר מחדש את כל שורות הטופס מאפס לפי מערך
   function renderItems() {
     itemsArea.innerHTML = '';
 
+    // במערך ומייצר לו שורת קלט item עובר על כל
+    // it זה אובייקט של השורה הנוכחית
+    // idx  שלנו לשורה idזה האינדקס זה ה
     items.forEach((it, idx) => {
       const row = document.createElement('div');
       row.style.display = 'grid';
@@ -70,7 +87,8 @@
       row.style.marginBottom = '8px';
       row.style.alignItems = 'center';
       row.style.minWidth = '0';
-
+      // בנפרד input לכל event listener כדי לזהות באירועים איזה שורה ואיזה שדה השנה בלי להוסיף data-field וב data-idx משתמש ב 
+      // autocomplete זה סוג של קופסה ריקה שמחכה להצעות מוצרים מהשרת הכוונה ל data-suggest
       row.innerHTML = `
         <div style="position:relative; min-width:0;">
           <input
@@ -81,6 +99,7 @@
             autocomplete="off"
             style="width:100%; min-width:0;"
           />
+          
           <div data-suggest="${idx}"
                style="
                  position:absolute;
@@ -117,29 +136,29 @@
     });
   }
 
-  // =========================
-  // Preview (ONLY sandbox + modern)
-  // =========================
+
+  // Preview
   function renderPreview() {
-    // ✅ נשאר רק sandbox/modern
+    // שבטופס ולפי זה נבחרת תבניתselect קורא את הערך מה
     const rawTemplateKey = form.elements.templateKey?.value || 'sandbox';
     const templateKey = rawTemplateKey === 'modern' ? 'modern' : 'sandbox';
-
+    // מביא שדות מהטופס
     const businessName = form.elements.businessName?.value || '';
     const title = form.elements.title?.value || 'הצעת מחיר';
     const quoteDate = form.elements.quoteDate?.value || '';
     const themeColor = form.elements.themeColor?.value || '#1f2937';
 
-    // ✅ מגיע מהשרת (הגדרות משתמש)
+    // מביא שדות מהשרת
     const logoUrl = String(quote.logoUrl || '').trim();
     const slogan = String(quote.slogan || '').trim();
     const phone = String(quote.phone || '').trim();
-
+    // מחשב סה"כ לתשלום בזמן אמת
     const total = items.reduce(
       (sum, it) => sum + (Number(it.qty) || 0) * (Number(it.price) || 0),
       0
     );
-
+    // אם אין שורות מציג שורה אחת שאומרת שאיו שורות tr אם יש שורות אז יוצר
+    // html כדי לא להיכנס ל escapeHTML פה משתמשים ב
     const rowsHtml = items.length
       ? items
           .map((it) => {
@@ -160,10 +179,10 @@
 
     const sloganHtml = slogan ? `<div class="slogan">${escapeHtml(slogan)}</div>` : '';
     const phoneHtml = phone ? `<div class="phone">טלפון: ${escapeHtml(phone)}</div>` : '';
-
+    // שלא יתנגשו עם שאר הדף css html לתצוגה מקדימה בלייב המבודדת shadow dom
     const root = previewBox.shadowRoot || previewBox.attachShadow({ mode: 'open' });
 
-    // ===== Sandbox =====
+    //  Sandbox
     const sandboxHtml = `
       <div class="page">
         <div class="header">
@@ -215,7 +234,7 @@
       </div>
     `;
 
-    // ===== Modern =====
+    // Modern
     const modernHtml = `
       <div class="card">
         <div class="band"></div>
@@ -248,6 +267,7 @@
       </div>
     `;
 
+    //  shadwroot פנימי בתוך css כולל templatekey sandbox / modenr מרנדר תצוגה לפי
     root.innerHTML = `
       <style>
         * { box-sizing: border-box; }
@@ -358,24 +378,23 @@
     `;
   }
 
+  // לפני שמירה itemsJson ומסכנכרנת preview מעדרכת ui פונקציה שמרנדרת את שורות ה
   function render() {
     renderItems();
     renderPreview();
     syncHiddenItemsJson();
   }
 
-  // =========================
   // Autocomplete
-  // =========================
   let suggestTimer = null;
   let lastSuggestIdx = null;
 
   function fetchSuggestions(q, cb) {
-    fetch(`/products/search?q=${encodeURIComponent(q)}`, {
+    fetch(`/products/search?q=${encodeURIComponent(q)}`, { // שולח בקשה לשרת כדי לקבל מוצרים תואמים ומונע בעיות אם יש רווחים ועברית וכו
       method: 'GET',
       credentials: 'same-origin',
     })
-      .then(async (r) => {
+      .then(async (r) => { // אז לא נשבר אחרת מחזירים את רשימת המוצרים json אם השרת החזיר שגיאה אז מחזירים רשימה ריקה אם זה לא
         const ct = r.headers.get('content-type') || '';
         if (!r.ok) return [];
         if (!ct.includes('application/json')) return [];
@@ -384,12 +403,12 @@
       .then(cb)
       .catch(() => cb([]));
   }
-
-  function getSuggestBox(idx) {
+  // והאינדקס של השורה data-suggest מנהל תפריט הצעות לשל שורה לפי
+  function getSuggestBox(idx) { // מוצא את הקופסה של השרה הנכונה
     return itemsArea.querySelector(`[data-suggest="${idx}"]`);
   }
 
-  function hideSuggestions(idx) {
+  function hideSuggestions(idx) { // מסתיר ומנקה
     const box = getSuggestBox(idx);
     if (!box) return;
     box.style.display = 'none';
@@ -397,12 +416,12 @@
     if (lastSuggestIdx === idx) lastSuggestIdx = null;
   }
 
-  function hideAllSuggestions() {
+  function hideAllSuggestions() { // סוגר את האחרונה הפתוחה
     if (lastSuggestIdx !== null) hideSuggestions(lastSuggestIdx);
     lastSuggestIdx = null;
   }
 
-  function showSuggestions(idx, list) {
+  function showSuggestions(idx, list) { // של הצעות ומציג html ממלא אותה ב
     const box = getSuggestBox(idx);
     if (!box) return;
 
@@ -431,10 +450,8 @@
     lastSuggestIdx = idx;
   }
 
-  // =========================
-  // Events
-  // =========================
-  addItemBtn.addEventListener('click', () => addItem());
+  // events
+  addItemBtn.addEventListener('click', () => addItem()); // אם לוחצים כל כפתור הוספת שורה מוסיף שורה
 
   // שינויי ערכים + autocomplete באותו listener (מונע כפילויות)
   itemsArea.addEventListener('input', (e) => {
@@ -477,7 +494,7 @@
       renderPreview();
       syncHiddenItemsJson();
 
-      // 2) autocomplete
+      // 2) autocomplete שמתחיל מ2 תווים
       const q = String(el.value || '').trim();
       clearTimeout(suggestTimer);
 
@@ -537,16 +554,13 @@
   // שינויי טופס (template/color/title/date וכו') רק preview
   form.addEventListener('input', () => renderPreview());
   form.addEventListener('change', () => renderPreview());
-
+  // לפני שליחת הטופס סוגר הצעות ומסנכון כדי שהשרת יקבל נתונים עדכניים
   form.addEventListener('submit', () => {
     hideAllSuggestions();
     syncHiddenItemsJson();
   });
 
-  // =========================
-  // Init
-  // =========================
-  // אם אין פריטים - נוסיף אחד
+  // אם אין שורות מוסיף שורה ראשונה אוטומטית אחרת מרנדר את השורות הקיימות
   if (items.length === 0) addItem();
   else render();
 })();

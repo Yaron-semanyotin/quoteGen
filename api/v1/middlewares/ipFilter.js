@@ -1,3 +1,5 @@
+// api/v1/middlewares ipFilter.js
+
 module.exports = (req, res, next) => {
   const allowIps = [
     '::1',

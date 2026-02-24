@@ -1,20 +1,23 @@
+<!--api/v1/views/partials authform.handlebars -->
+{{!-- משותף לתפסי התחברות והרשמה מקבל פרמטרים דינמיים לקביעת הפעולה partial --}}
+{{!-- נקבע דינמית כדי לאפשר שימוש בטופס גם להחברות וגם להרשמה action --}}
 <form class="form" method="post" action="{{action}}">
   <div class="field">
     <label>אימייל</label>
-    <input class="input" name="email" type="email" required placeholder="name@example.com" />
+    <input class="input" name="email" type="email" required placeholder="email@gmail.com" />
   </div>
 
   <div class="field">
     <label>סיסמה</label>
-    <input class="input" name="password" type="password" required placeholder="••••••••" />
+    <input class="input" name="password" type="password" required placeholder="Password" />
   </div>
-
+{{!-- showConfirmPassword שדה לאימות סיסמה מוצג רק בזמן הרשמה נשלט על ידי המשתנה --}}
   {{#if showConfirmPassword}}
     <div class="field">
       <label>אימות סיסמה</label>
-      <input class="input" name="confirmPassword" type="password" required placeholder="••••••••" />
+      <input class="input" name="confirmPassword" type="password" required placeholder="Confirm Password" />
     </div>
   {{/if}}
-
+  {{!-- הטקסט של הכפתור הוא דינמי כדי לאפשר שימוש חוזר בטופס --}}
   <button class="btn btn-primary" type="submit">{{buttonText}}</button>
 </form>

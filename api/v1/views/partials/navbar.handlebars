@@ -1,9 +1,12 @@
+<!--api/v1/views/partials navbar.handlebars -->
+
 <nav class="navbar">
   <div class="nav-inner">
     <div class="nav-left">
-      <div class="brand">Quote Generator</div>
+      <div class="brand">אתר ליצירת הצעות מחיר</div>
 
       <div class="nav-links">
+        {{!-- app.js שנמצא ב isLoggedIn הצגת קישורים שונים לפי התחברות באמצעות המשתנה --}}
         {{#if isLoggedIn}}
           <a href="/quotes">הצעות מחיר</a>
           <a href="/products">מוצרים</a>

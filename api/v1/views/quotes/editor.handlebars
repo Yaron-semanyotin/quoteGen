@@ -1,7 +1,10 @@
+<!--api/v1/views/quotes editor.handlebars -->
+
 <div class="container-wide">
 
 <div class="row-between">
   <div>
+    <!-- מציג עריכת הצעת מחיר אחרת מציג יצירת הצעת מחיר true הוא isEdit תנאי שאם -->
     <h1 class="h1">{{#if isEdit}}עריכת הצעת מחיר{{else}}יצירת הצעת מחיר{{/if}}</h1>
     <p class="p">הכל נשמר כטיוטה. אפשר לחזור ולערוך בכל זמן.</p>
   </div>
@@ -11,10 +14,12 @@
 
 <div class="editor-grid">
   <div class="card">
+    <!-- routes/controller הוא החיביר ישירות ל action יוכל למצוא אותו ה js כדי שה post הטופס שולח -->
     <form class="form" method="post" action="{{#if isEdit}}/quotes/{{quote._id}}{{else}}/quotes{{/if}}" id="quoteForm">
 
       <div class="field">
         <label>שם העסק</label>
+        <!-- {{quote.businessName}} מכניס את הערך של שם העסק מהשרת לתוך השדה-->
         <input class="input" name="businessName" value="{{quote.businessName}}" />
       </div>
 
@@ -31,6 +36,8 @@
       <div class="field">
         <label>תבנית</label>
           <select class="input" name="templateKey">
+            <!-- זה משתמש בתבנית הנל quote.templateKey שווה לערך של ה select אם הערך של ה-->
+            <!-- שלי handlebars להגדרות view זה מחבר את app.js ב helper מגיע מה eq ה-->
             <option value="sandbox" {{#if (eq quote.templateKey "sandbox")}}selected{{/if}}>Sandbox</option>
             <option value="modern" {{#if (eq quote.templateKey "modern")}}selected{{/if}}>Modern</option>
           </select>
@@ -53,8 +60,10 @@
         <button class="btn" type="button" id="addItemBtn">+ הוסף שורה</button>
       </div>
 
+      <!--מייצר שורות דינמיות dom ב-->
       <div id="itemsArea"></div>
 
+      
       <input type="hidden" name="itemsJson" id="itemsJson" />
       <input type="hidden" name="action" id="actionField" value="save" />
 
@@ -67,6 +76,8 @@
           שמור + הורד PDF
         </button>
 
+
+        <!-- כפתור הורדה רק בעריכה -->
         {{#if isEdit}}
           <a class="btn" href="/quotes/{{quote._id}}/pdf" target="_blank">📄 הורד PDF</a>
         {{/if}}
@@ -75,16 +86,22 @@
     </form>
   </div>
 
-  <div class="card editor-form">
+  <div class="card editor-preview"> <!-- preview של html/css מכניס לשם shadow dom עושה js תצוגה בלייב ה-->
     <div class="row-between">
       <h2 class="h2">תצוגה מקדימה</h2>
       <span class="p">Live Preview</span>
     </div>
+
+    <!-- prewviewbox כל התצוגה בלייב תלויה ב-->
     <div id="previewBox" class="previewBox" style="margin-top:12px;"></div>
   </div>
 </div>
 </div>
 <script>
+  // quote אובייקט view השרת נותן ל
+  // json.stringify עושה helper json
+  // אל תבחר תווים אלה תביא תוכן מלא handlebarsשלושה סוגרים מסולסלים אומר ל
   window.__QUOTE__ = {{{json quote}}};
 </script>
+<!-- שמגיע מאיזור הסטטים של פאבליק js טעינת ה-->
 <script src="/js/quote-editor.js"></script>

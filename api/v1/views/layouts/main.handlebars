@@ -1,15 +1,22 @@
+<!--api/v1/views/layours main.handlebars -->
+
+{{!-- views הראשי של כל העמודים הרגילים הגדרות מוצרים והצעות זה בעצם שלד קבוע שמסביב לתוכן המשתנה של כל ה layout ה --}}
 <!doctype html>
 <html lang="he" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  {{!-- view כותרת דפדפן דינתמים על ידי משתנה טייטל שנשלח מהשרת לכל ה --}}
   <title>{{title}}</title>
-  <link rel="stylesheet" href="/css/site.css">
+ {{!-- טעינת עיצוב גלובלי מתוך פאבליק כך שכל העמודים משתמש באותו סטייל --}}
+ <link rel="stylesheet" href="/css/site.css">
 </head>
 <body>
+  {{!-- כדי להציג קישורים לפי מצב התחברות res.locals.isLoggedIn משותך לכל העמודים ומסתמך על partial הוא navbar --}}
   {{> navbar}}
 
   <main class="container">
+    {{!-- views של ה html פה זה המקוום שבו מוזרק --}}
     {{{body}}}
   </main>
 </body>

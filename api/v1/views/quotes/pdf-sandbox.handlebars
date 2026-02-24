@@ -1,9 +1,16 @@
+<!--api/v1/views/quotes pdf-sandbox.handlebars -->
+
+{{!-- זרימה מלאה של התבניות
+  quoteCtrl.downloadPdf ב GET /quotes/:id/pdf זה שולח בקשת pdf המשתמש לוחץ על הורד 
+  applyUserSettingsToQuote(quote, user) שולפים משתמש והצעה מהמסד נתונים וההגדרות מזריק נתונים מה 
+  view ומרנדרים את ה baseUrl מחשבים סה"כ מחיר ובונים--}}
+{{!-- Puppeteer על ידי pdfומומרת ל handlebars באמצעות html היא נוצרת כ sandbox מסוג pdf בקיצור נוצרת תבנית --}}
 <!doctype html>
 <html lang="he" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-
+  {{!--  כדי שתמונות ונתיבים סטטיים ייטענו נכון בזמן יצירת הקובץprotocol+host המגדירה כתובת בסיס base תגיד --}}
   <base href="{{baseUrl}}/">
 
   <!-- פונט עברי -->
@@ -13,7 +20,7 @@
 
   <style>
     :root{
-      --theme: {{quote.themeColor}};
+      --theme: {{quote.themeColor}}; 
       --text: #111;
       --muted: #6b7280;
       --line: var(--theme);
@@ -195,12 +202,14 @@
   <div class="page">
 
     <div class="header">
+      {{!-- quote.logoUrl מציג את הלוגו רק אם קיים --}}
       {{#if quote.logoUrl}}
         <img class="logoCorner" src="{{quote.logoUrl}}" alt="logo" />
       {{/if}}
 
       <div class="topRow">
         <div>
+          {{!-- הצגת שם העסק שהוא חובה ואת הסלוגן והטלפון שהם אופציונליים מהגדרות המשתמש --}}
           <div class="biz">{{quote.businessName}}</div>
 
           {{#if quote.slogan}}
@@ -213,13 +222,14 @@
         </div>
 
         <div class="meta">
+          {{!-- מציג את התאריך רק אם המשתמש מילא אותו --}}
           {{#if quote.quoteDate}}
             תאריך: <b>{{quote.quoteDate}}</b><br>
           {{/if}}
         </div>
       </div>
     </div>
-
+    {{!-- quote.title כותרת ההצעת מחיר מוצגת מתוך --}}
     <div class="docTitle">{{quote.title}}</div>
 
     <table>
@@ -237,6 +247,7 @@
       </thead>
 
       <tbody>
+        {{!-- formatMoney ומפורמט עם calcLineTotal לכל שורה מוצגים שם כמות יחידות ומחיר וסכום שורה מחושב עם quote.times טבלה שמציגה את --}}
         {{#if quote.items.length}}
           {{#each quote.items}}
             <tr>
@@ -255,13 +266,15 @@
 
     <div class="totals">
       <div class="totalBox">
+        {{!-- handlebars טוטאל מחושב בשרת ושולח את זה ל --}}
         <div class="totalRow"><span>סה״כ לתשלום</span><strong>{{formatMoney total}}</strong></div>
       </div>
     </div>
 
     <div class="footer">
-      <div>{{#if quote.notes}}{{quote.notes}}{{else}}הערות: המחירים כוללים מע״מ.{{/if}}</div>
-      <div>© {{quote.businessName}}</div>
+      <div>הערות: המחירים כוללים מע״מ.</div>
+      {{!-- מציג את שם העסק בתחתית המסך --}}
+      <div>{{quote.businessName}}</div>
     </div>
 
   </div>

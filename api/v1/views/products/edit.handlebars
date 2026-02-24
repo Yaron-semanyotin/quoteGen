@@ -1,5 +1,8 @@
+<!--api/v1/views/products edit.handlebars -->
+
 <h1>עריכת מוצר</h1>
 
+{{!-- מציג הודעת שגיאה אם יש קלטל א תקין --}}
 {{#if error}}
   <p style="color:red">{{error}}</p>
 {{/if}}
@@ -12,7 +15,7 @@
   <input name="price" type="number" step="0.01" value="{{product.price}}" /><br /><br />
 
   <label>יחידות</label><br />
-<input name="unit" value="{{product.unit}}" />
+  <input name="unit" value="{{product.unit}}" />
 
 
   <button type="submit">עדכן</button>

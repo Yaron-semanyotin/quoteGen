@@ -1,18 +1,21 @@
+<!--api/v1/views settings.handlebars -->
+
 <h1>הגדרות עסק</h1>
 
+<!-- כדי לעלות את הלוגו ואת פרטי העסק auth/settings שולח בקשת פוסט ל-->
 <form method="post" action="/auth/settings" enctype="multipart/form-data">
   <label>שם העסק</label><br/>
-  <input name="businessName" value="{{user.businessName}}" /><br/><br/>
+  <input name="businessName" value="{{user.businessName}}" /><br/>
 <label>סלוגן (אופציונלי)</label><br/>
-<input name="slogan" value="{{user.slogan}}" placeholder="לדוגמה: איכות בלי פשרות" /><br/><br/>
+<input name="slogan" value="{{user.slogan}}" placeholder="לדוגמה: איכות בלי פשרות" /><br/>
 
 <label>טלפון (אופציונלי)</label><br/>
-<input name="phone" value="{{user.phone}}" placeholder="לדוגמה: 050-1234567" /><br/><br/>
+<input name="phone" value="{{user.phone}}" placeholder="לדוגמה: 050-1234567" /><br/>
   <label>צבע ברירת מחדל</label><br/>
-  <input name="themeColor" type="color" value="{{user.themeColor}}" class="color-picker" /><br/><br/>
+  <input name="themeColor" type="color" value="{{user.themeColor}}" class="color-picker" /><br/>
 
   <label>לוגו</label><br/>
-  {{#if user.logoPath}}
+  {{#if user.logoPath}} <!--אם יש לוגו תציג אותו-->
     <img src="{{user.logoPath}}" style="max-height:60px;display:block;margin-bottom:10px;" />
   {{/if}}
   <input type="file" name="logo" accept="image/*" /><br/><br/>
