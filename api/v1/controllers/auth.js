@@ -130,7 +130,7 @@ const usersObj = { // קורא להן router הוא אובייקא שמכיל א
         }
         // לסיסמה ושומר במסד נתונים bcrypt יצירת משתמש מבצע
         return bcrypt.hash(password, 10).then((passwordHash) => {
-          return User.create({ email, passwordHash, businessName });
+          return User.create({ email, passwordHash });
         });
       })
       .then((createdUser) => {
