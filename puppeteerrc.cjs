@@ -1,3 +1,5 @@
+// ברמת האפליקציה puppeteerrc.cjs
+
 const { join } = require('path');
 
 /**
