@@ -254,11 +254,11 @@ const quotesCtrl = {
       });
 
       // ומחכה שכל התוכן והמשאבים ייטענו לתוך דף html וטוען את ה chromium פותח
-      const browser = await puppeteer.launch({
-        headless: true,
-        executablePath: puppeteer.executablePath(),
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-      });
+const browser = await puppeteer.launch({
+  headless: true,
+  executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(),
+  args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+});
       const page = await browser.newPage();
 
       await page.setContent(html, { waitUntil: ['domcontentloaded', 'networkidle0'] }); // אומר אין יותר בקשות רשת  networkidle0 אומר הדומ נטען domcontentloaded
