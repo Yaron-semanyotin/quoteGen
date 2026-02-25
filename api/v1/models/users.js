@@ -19,6 +19,8 @@ const userSchema = new mongoose.Schema( // יצירת סכימה
     nextQuoteNumber: { type: Number, default: 1 },
     // שומר את הנתיב ללוגו
     logoPath: { type: String, default: '' },
+    // בשביל להגיע לנתיב של הענן publicId שמירת ה
+    logoPublicId: { type: String, default: '' },
     // שומר את הצבע
     themeColor: { type: String, default: '#1f2937' },
   },
