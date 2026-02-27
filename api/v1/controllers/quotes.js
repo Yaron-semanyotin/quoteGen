@@ -100,7 +100,7 @@ const quotesCtrl = {
     res.render('quotes/editor', { // ומציג בו ערכים ברירת מחדל מההגדרות העסק editor.handlebars טוען את הקובץ
       title: 'יצירת הצעת מחיר',
       quote: { // ui מתחילים עם הצעה מוכנה היא לא שמירה עדיין במסד נתונים זו טיוטה בזיכרון בשביל להציג
-        businessName: user?.businessName || '',
+        businessName: user?.businessName || '', // של מחרוזת ריקה fallback בודק אם קיים שם עסק אם לא קיים מחזיר
         slogan: user?.slogan || '',
         phone: user?.phone || '',
         title: 'הצעת מחיר',
