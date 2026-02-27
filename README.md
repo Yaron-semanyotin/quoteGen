@@ -18,6 +18,8 @@ Export quotes as professional PDF documents
 
 The project was built using MVC architecture and production-ready backend practices.
 
+---
+
 2. System Architecture
 
 The project follows the MVC architecture:
@@ -31,6 +33,8 @@ Controllers - Business logic layer
 Config - External services configuration (Cloudinary)
 
 Routes - Express routing
+
+---
 
 3. Technologies Used
 Backend:
@@ -65,6 +69,8 @@ Render
 
 MongoDB Atlas
 
+---
+
 4. Application Flow
 
 User registers or logs in.
@@ -80,6 +86,68 @@ Quote can be previewed.
 Quote is rendered to PDF using Puppeteer.
 
 Logo images are stored securely in Cloudinary.
+
+---
+
+## Application Screenshots
+
+### Login Page
+
+The login page allows registered users to securely authenticate using email and password.  
+User sessions are created using express-session after successful validation.
+
+<img src="docs/images/login-page.png" width="850"/>
+
+---
+
+### Business Settings
+
+In the settings page, users can configure their business information including logo upload, theme color, slogan and phone number.  
+The logo image is uploaded to Cloudinary and the data is stored in MongoDB.
+
+<img src="docs/images/settings-page.png" width="850"/>
+
+---
+
+### Products Management
+
+The products page allows users to manage their product catalog.  
+Each product is linked to the logged-in user (ownerId) to ensure multi-user data isolation.
+
+Users can create, edit and delete products.
+
+<img src="docs/images/products-page.png" width="850"/>
+
+---
+
+### Quotes List
+
+This page displays all quotes created by the logged-in user.  
+Quotes are sorted by creation date and stored in MongoDB.
+
+<img src="docs/images/quotes-page.png" width="850"/>
+
+---
+
+### Create New Quote
+
+Users can dynamically add multiple items to a quote.  
+Each item includes product name, quantity, unit and price.
+
+The system supports autocomplete using the products search endpoint to improve user experience.
+
+<img src="docs/images/new-quote-page.png" width="850"/>
+
+---
+
+### Edit Quote
+
+Users can edit existing quotes, update items, and modify customer information.  
+Changes are saved in MongoDB and can later be exported as a PDF document.
+
+<img src="docs/images/edit-quote-page.png" width="850"/>
+
+---
 
 5. API Endpoints
 5.1 Authentication Routes
@@ -309,6 +377,8 @@ Returns up to 10 matching results
 
 Responds with JSON array (name, price, unit)
 
+---
+
 6. Environment Variables
 
 The project requires:
@@ -342,6 +412,8 @@ npm start
 Open in browser:
 
 http://localhost:5000
+
+---
 
 8. Live Deployment
 
