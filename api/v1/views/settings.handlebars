@@ -1,24 +1,46 @@
-<!--api/v1/views settings.handlebars -->
+<div class="card">
+  <div class="stack">
+    <h1 class="h1">הגדרות עסק</h1>
 
-<h1>הגדרות עסק</h1>
+    {{#if error}}
+      <div class="alert alert-error">{{error}}</div>
+    {{/if}}
 
-<!-- כדי לעלות את הלוגו ואת פרטי העסק auth/settings שולח בקשת פוסט ל-->
-<form method="post" action="/auth/settings" enctype="multipart/form-data">
-  <label>שם העסק</label><br/>
-  <input name="businessName" value="{{user.businessName}}" /><br/>
-<label>סלוגן (אופציונלי)</label><br/>
-<input name="slogan" value="{{user.slogan}}" placeholder="לדוגמה: איכות בלי פשרות" /><br/>
+    <form class="form" method="post" action="/auth/settings" enctype="multipart/form-data">
+      <div class="field">
+        <label>שם העסק</label>
+        <input class="input" name="businessName" value="{{user.businessName}}" />
+      </div>
 
-<label>טלפון (אופציונלי)</label><br/>
-<input name="phone" value="{{user.phone}}" placeholder="לדוגמה: 050-1234567" /><br/>
-  <label>צבע ברירת מחדל</label><br/>
-  <input name="themeColor" type="color" value="{{user.themeColor}}" class="color-picker" /><br/>
+      <div class="field">
+        <label>סלוגן אופציונלי</label>
+        <input class="input" name="slogan" value="{{user.slogan}}" placeholder="לדוגמה: איכות בלי פשרות" />
+      </div>
 
-  <label>לוגו</label><br/>
-  {{#if user.logoPath}} <!--אם יש לוגו תציג אותו-->
-    <img src="{{user.logoPath}}" style="max-height:60px;display:block;margin-bottom:10px;" />
-  {{/if}}
-  <input type="file" name="logo" accept="image/*" /><br/><br/>
+      <div class="field">
+        <label>טלפון אופציונלי</label>
+        <input class="input" name="phone" value="{{user.phone}}" placeholder="לדוגמה: 050-1234567" />
+      </div>
 
-  <button type="submit">שמור</button>
-</form>
+      <div class="field">
+        <label>צבע ברירת מחדל</label>
+        <input name="themeColor" type="color" value="{{user.themeColor}}" class="color-picker" />
+      </div>
+
+      <div class="field">
+        <label>לוגו</label>
+
+        {{#if user.logoPath}}
+          <img src="{{user.logoPath}}" class="settings-logo-preview" alt="logo" />
+        {{/if}}
+
+        <label class="file-upload-btn">
+          בחר לוגו
+          <input type="file" name="logo" accept="image/*" hidden />
+        </label>
+      </div>
+
+      <button class="btn btn-primary" type="submit">שמור הגדרות</button>
+    </form>
+  </div>
+</div>

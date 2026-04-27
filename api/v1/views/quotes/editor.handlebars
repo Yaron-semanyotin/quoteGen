@@ -28,10 +28,10 @@
         <input class="input" name="title" value="{{quote.title}}" />
       </div>
 
-      <div class="field">
+      {{!-- <div class="field">
         <label>תאריך</label>
         <input class="input" name="quoteDate" value="{{quote.quoteDate}}" placeholder="2026-02-10" />
-      </div>
+      </div> --}}
 
       <div class="field">
         <label>תבנית</label>
@@ -78,11 +78,16 @@
 
 
         <!-- כפתור הורדה רק בעריכה -->
-        {{#if isEdit}}
-          <a class="btn" href="/quotes/{{quote._id}}/pdf" target="_blank">📄 הורד PDF</a>
-        {{/if}}
+        {{!-- {{#if isEdit}}
+          <a class="btn" href="/quotes/{{quote._id}}/pdf" download>📄 הורד PDF</a>
+        {{/if}} --}}
         
       </div>
+            {{#if error}}
+  <div class="alert alert-error" style="margin-top:12px;">
+    {{error}}
+  </div>
+{{/if}}
     </form>
   </div>
 

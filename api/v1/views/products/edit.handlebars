@@ -1,22 +1,28 @@
-<!--api/v1/views/products edit.handlebars -->
+<div class="card">
+  <div class="stack">
+    <h1 class="h1">עריכת מוצר</h1>
 
-<h1>עריכת מוצר</h1>
+    {{#if error}}
+      <div class="alert alert-error">{{error}}</div>
+    {{/if}}
 
-{{!-- מציג הודעת שגיאה אם יש קלטל א תקין --}}
-{{#if error}}
-  <p style="color:red">{{error}}</p>
-{{/if}}
+    <form class="form" method="post" action="/products/{{product._id}}">
+      <div class="field">
+        <label>שם מוצר</label>
+        <input class="input" name="name" value="{{product.name}}" />
+      </div>
 
-<form method="post" action="/products/{{product._id}}">
-  <label>שם מוצר</label><br />
-  <input name="name" value="{{product.name}}" /><br /><br />
+      <div class="field">
+        <label>מחיר</label>
+        <input class="input" name="price" type="number" step="0.01" value="{{product.price}}" />
+      </div>
 
-  <label>מחיר</label><br />
-  <input name="price" type="number" step="0.01" value="{{product.price}}" /><br /><br />
+      <div class="field">
+        <label>יחידות</label>
+        <input class="input" name="unit" value="{{product.unit}}" />
+      </div>
 
-  <label>יחידות</label><br />
-  <input name="unit" value="{{product.unit}}" />
-
-
-  <button type="submit">עדכן</button>
-</form>
+      <button class="btn btn-primary" type="submit">עדכן</button>
+    </form>
+  </div>
+</div>

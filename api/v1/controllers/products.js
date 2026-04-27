@@ -1,58 +1,53 @@
-// api/v1/controllers product.js
+const Product = require('../models/products');
 
-const Product = require('../models/products'); // ייבוא של הסכימה
-
-const productsCtrl = { // אובייקט שמחזיק את הפונקציות
-  // הצגת רשימת מוצרים
+const productsCtrl = {
   listPage: (req, res) => {
-    const ownerId = req.session.userId; // (req.session.userId = user._id.toString()) login לוקח את המשתמש המחובר שמגיע מה
+    const ownerId = req.session.userId;
 
-    Product.find({ ownerId }) // מחפש מוצרים רק של המשתמש הנל
-      .sort({ createdAt: -1 }) // ממיין אותם מהחדש לישן
-      .lean() // מחזיר אובייקטים רגילים במקום מסמכי מונוס כבדים זה יותר יעיל ומהיר כשאתה רק מציג מידע
+    Product.find({ ownerId })
+      .sort({ createdAt: -1 })
+      .lean()
       .then((products) => {
-        return res.render('products/index', { // מציג את דף המוצרים של המשתמש
+        return res.render('products/index', {
           title: 'המוצרים שלי',
           products,
         });
       })
       .catch((err) => res.status(500).send(err.message));
   },
-  // הצגת טופס יצירת מוצר
-  // ומציג דף יצירת מוצר חדש products ל post הטופס שולח
+
   newPage: (req, res) => {
     return res.render('products/new', { title: 'הוספת מוצר' });
   },
 
-  // post יצירת מוצר חדש
   create: (req, res) => {
     const ownerId = req.session.userId;
-    let { name, price, unit } = req.body; // שם מחיר ויחידה req.body פרטים שמגיעי מה
-    // ניקוי קלט כדי למנוי נאלים ורווחים מיותרים
+    let { name, price, unit } = req.body;
+
     name = String(name || '').trim();
     unit = String(unit || '').trim();
 
-    // אם חסר אחד מהתאים מחזיר הודעת שגיאה
     if (!name || price === undefined || price === '') {
       return res.status(400).render('products/new', {
         title: 'הוספת מוצר',
         error: 'חובה למלא שם ומחיר',
       });
     }
-    // המרה למספר ובדיקה שהמספר חיובי או הוא שלילי הוא מחזיר מספר חיובי
+
     price = Number(price);
+
     if (Number.isNaN(price) || price < 0) {
       return res.status(400).render('products/new', {
         title: 'הוספת מוצר',
         error: 'מחיר חייב להיות מספר חיובי',
       });
     }
-    // אם יש יחידה ריקה אז משלים ל1
+
     Product.create({ ownerId, name, price, unit: unit || '1' })
-      .then(() => res.redirect('/products')) // יוצר מוצר חדש למשתמש המחובר
+      .then(() => res.redirect('/products'))
       .catch((err) => res.status(500).send(err.message));
   },
-  //  הצגת דף עריכת מוצר של המשתמש המחובר
+
   editPage: (req, res) => {
     const ownerId = req.session.userId;
     const id = req.params.id;
@@ -61,14 +56,19 @@ const productsCtrl = { // אובייקט שמחזיק את הפונקציות
       .lean()
       .then((product) => {
         if (!product) return res.status(404).send('לא נמצא מוצר');
-        return res.render('products/edit', { title: 'עריכת מוצר', product });
+
+        return res.render('products/edit', {
+          title: 'עריכת מוצר',
+          product,
+        });
       })
       .catch((err) => res.status(500).send(err.message));
   },
-  // מעדכן מוצר קיים של המשתמש המחובר
+
   update: (req, res) => {
     const ownerId = req.session.userId;
     const id = req.params.id;
+
     let { name, price, unit } = req.body;
 
     name = String(name || '').trim();
@@ -83,6 +83,7 @@ const productsCtrl = { // אובייקט שמחזיק את הפונקציות
     }
 
     price = Number(price);
+
     if (Number.isNaN(price) || price < 0) {
       return res.status(400).render('products/edit', {
         title: 'עריכת מוצר',
@@ -98,7 +99,7 @@ const productsCtrl = { // אובייקט שמחזיק את הפונקציות
       .then(() => res.redirect('/products'))
       .catch((err) => res.status(500).send(err.message));
   },
-  // מחיקת מוצר של המשתמש המחובר
+
   remove: (req, res) => {
     const ownerId = req.session.userId;
     const id = req.params.id;
@@ -107,10 +108,23 @@ const productsCtrl = { // אובייקט שמחזיק את הפונקציות
       .then(() => res.redirect('/products'))
       .catch((err) => res.status(500).send(err.message));
   },
-  // חיפוש של השלמה אוטומטית
+
+  // מחזיר את כל המוצרים של המשתמש פעם אחת בשביל localStorage
+  all: (req, res) => {
+    const ownerId = req.session.userId;
+
+    Product.find({ ownerId })
+      .select({ name: 1, price: 1, unit: 1 })
+      .sort({ name: 1 })
+      .lean()
+      .then((products) => res.json(products))
+      .catch((err) => res.status(500).json({ message: err.message }));
+  },
+
+  // אפשר להשאיר את זה כגיבוי, אבל ה-autocomplete החדש כבר לא חייב להשתמש בזה
   search: (req, res) => {
     const ownerId = req.session.userId;
-    const q = String(req.query.q || '').trim(); // (fetch(`/products/search?q = ${encodeURIComponent(q)})`) quote-editor.js מגיע מהקובץ q ה
+    const q = String(req.query.q || '').trim();
 
     if (!q) return res.json([]);
 
@@ -119,11 +133,11 @@ const productsCtrl = { // אובייקט שמחזיק את הפונקציות
       name: { $regex: q, $options: 'i' },
     })
       .select({ name: 1, price: 1, unit: 1 })
-      .limit(10) // מחזיר עד 10 תוצאות
+      .limit(10)
       .lean()
       .then((rows) => res.json(rows))
       .catch((err) => res.status(500).json({ message: err.message }));
   },
 };
 
-module.exports = productsCtrl; // ייצוא של נקונטרולר
+module.exports = productsCtrl;

@@ -1,59 +1,52 @@
-<!--api/v1/views/quotes pdf-sandbox.handlebars -->
-
-{{!-- זרימה מלאה של התבניות
-  quoteCtrl.downloadPdf ב GET /quotes/:id/pdf זה שולח בקשת pdf המשתמש לוחץ על הורד 
-  applyUserSettingsToQuote(quote, user) שולפים משתמש והצעה מהמסד נתונים וההגדרות מזריק נתונים מה 
-  view ומרנדרים את ה baseUrl מחשבים סה"כ מחיר ובונים--}}
-{{!-- Puppeteer על ידי pdfומומרת ל handlebars באמצעות html היא נוצרת כ sandbox מסוג pdf בקיצור נוצרת תבנית --}}
 <!doctype html>
 <html lang="he" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  {{!--  כדי שתמונות ונתיבים סטטיים ייטענו נכון בזמן יצירת הקובץprotocol+host המגדירה כתובת בסיס base תגיד --}}
   <base href="{{baseUrl}}/">
 
-  <!-- פונט עברי -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@400;700&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --theme: {{quote.themeColor}}; 
+      --theme: {{quote.themeColor}};
       --text: #111;
       --muted: #6b7280;
       --line: var(--theme);
       --bg: #fff;
-      --pageW: 210mm;
-      --pageH: 297mm;
-      --pad: 16mm;
     }
 
-    *{ box-sizing:border-box; }
+    *{
+      box-sizing: border-box;
+    }
+
+    html,
     body{
-      margin:0;
-      background:#f3f4f6;
+      margin: 0;
+      padding: 0;
+      background: #fff;
       font-family: "Noto Sans Hebrew", Arial, sans-serif;
-      color:var(--text);
+      color: var(--text);
       direction: rtl;
     }
 
     .page{
-      width: var(--pageW);
-      min-height: var(--pageH);
-      margin: 18px auto;
+      width: 100%;
+      min-height: auto;
+      margin: 0;
       background: var(--bg);
-      padding: var(--pad);
-      box-shadow: 0 12px 30px rgba(0,0,0,.12);
-      border-radius: 10px;
+      padding: 12mm;
+      box-shadow: none;
+      border-radius: 0;
     }
 
     .header{
       position: relative;
       border-bottom: 2px solid var(--theme);
       margin-bottom: 14px;
-      padding: 80px 12px 12px 120px; /* מקום ללוגו בפינה שמאל */
+      padding: 80px 12px 12px 120px;
     }
 
     .logoCorner{
@@ -69,10 +62,10 @@
     }
 
     .topRow{
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      align-items:flex-start;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
     }
 
     .biz{
@@ -104,30 +97,34 @@
     }
 
     .meta{
-      text-align:left;
-      white-space:nowrap;
+      text-align: left;
+      white-space: nowrap;
       font-size: 12px;
       color: var(--muted);
     }
-    .meta b{ color: var(--text); }
+
+    .meta b{
+      color: var(--text);
+    }
 
     table{
-      width:100%;
+      width: 100%;
       border-collapse: collapse;
       margin-top: 14px;
-      font-size: 12.5px;
+      font-size: 12px;
       table-layout: fixed;
     }
 
-    colgroup col:nth-child(1){ width:42%; }
-    colgroup col:nth-child(2){ width:10%; }
-    colgroup col:nth-child(3){ width:14%; }
-    colgroup col:nth-child(4){ width:17%; }
-    colgroup col:nth-child(5){ width:17%; }
+    colgroup col:nth-child(1){ width: 38%; }
+    colgroup col:nth-child(2){ width: 14%; }
+    colgroup col:nth-child(3){ width: 16%; }
+    colgroup col:nth-child(4){ width: 16%; }
+    colgroup col:nth-child(5){ width: 16%; }
 
-    th, td{
+    th,
+    td{
       border-bottom: 1px solid var(--line);
-      padding: 8px;
+      padding: 7px;
       vertical-align: top;
       min-width: 0;
     }
@@ -135,7 +132,10 @@
     th{
       background: var(--theme);
       color: black;
-      font-weight:700;
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+      font-size: 10.5px;
     }
 
     td.text{
@@ -146,13 +146,17 @@
 
     td.num{
       white-space: nowrap;
-      text-align: right;
+      text-align: center;
+    }
+
+    .centerCell{
+      text-align: center;
     }
 
     .totals{
       margin-top: 12px;
-      display:flex;
-      justify-content:flex-end; /* שמאל בדף RTL */
+      display: flex;
+      justify-content: flex-end;
     }
 
     .totalBox{
@@ -160,17 +164,20 @@
       border: 1px solid var(--theme);
       border-radius: 12px;
       padding: 10px 12px;
-      text-align:left;
+      text-align: left;
     }
 
     .totalRow{
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
       font-size: 13px;
       padding: 4px 0;
     }
-    .totalRow strong{ font-size: 14px; }
+
+    .totalRow strong{
+      font-size: 14px;
+    }
 
     .footer{
       margin-top: 18px;
@@ -178,21 +185,31 @@
       padding-top: 10px;
       color: var(--muted);
       font-size: 11px;
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
     }
 
-    @page { size: A4; margin: 0; }
+    @page{
+      size: A4;
+      margin: 0;
+    }
+
     @media print{
-      body{ background:#fff; }
-      .page{
+      html,
+      body{
         margin: 0;
-        border-radius: 0;
-        box-shadow:none;
-        width: auto;
+        padding: 0;
+        background: #fff;
+      }
+
+      .page{
+        width: 100%;
         min-height: auto;
-        padding: var(--pad);
+        margin: 0;
+        padding: 12mm;
+        box-shadow: none;
+        border-radius: 0;
       }
     }
   </style>
@@ -202,14 +219,12 @@
   <div class="page">
 
     <div class="header">
-      {{!-- quote.logoUrl מציג את הלוגו רק אם קיים --}}
       {{#if quote.logoUrl}}
         <img class="logoCorner" src="{{quote.logoUrl}}" alt="logo" />
       {{/if}}
 
       <div class="topRow">
         <div>
-          {{!-- הצגת שם העסק שהוא חובה ואת הסלוגן והטלפון שהם אופציונליים מהגדרות המשתמש --}}
           <div class="biz">{{quote.businessName}}</div>
 
           {{#if quote.slogan}}
@@ -222,58 +237,60 @@
         </div>
 
         <div class="meta">
-          {{!-- מציג את התאריך רק אם המשתמש מילא אותו --}}
           {{#if quote.quoteDate}}
             תאריך: <b>{{quote.quoteDate}}</b><br>
           {{/if}}
         </div>
       </div>
     </div>
-    {{!-- quote.title כותרת ההצעת מחיר מוצגת מתוך --}}
+
     <div class="docTitle">{{quote.title}}</div>
 
     <table>
       <colgroup>
         <col><col><col><col><col>
       </colgroup>
+
       <thead>
         <tr>
           <th>מוצר</th>
-          <th>כמות</th>
-          <th>יחידה</th>
-          <th>מחיר</th>
+          <th>כמות מגשים</th>
+          <th>יחידות במגש</th>
+          <th>מחיר למגש</th>
           <th>סה״כ</th>
         </tr>
       </thead>
 
       <tbody>
-        {{!-- formatMoney ומפורמט עם calcLineTotal לכל שורה מוצגים שם כמות יחידות ומחיר וסכום שורה מחושב עם quote.times טבלה שמציגה את --}}
         {{#if quote.items.length}}
           {{#each quote.items}}
             <tr>
               <td class="text">{{this.name}}</td>
               <td class="num">{{this.qty}}</td>
-              <td class="text">{{this.unit}}</td>
+              <td class="text centerCell">{{this.unit}}</td>
               <td class="num">{{formatMoney this.price}}</td>
               <td class="num">{{formatMoney (calcLineTotal this.qty this.price)}}</td>
             </tr>
           {{/each}}
         {{else}}
-          <tr><td colspan="5" style="text-align:center;opacity:.7;">אין שורות</td></tr>
+          <tr>
+            <td colspan="5" style="text-align:center;opacity:.7;">אין שורות</td>
+          </tr>
         {{/if}}
       </tbody>
     </table>
 
     <div class="totals">
       <div class="totalBox">
-        {{!-- handlebars טוטאל מחושב בשרת ושולח את זה ל --}}
-        <div class="totalRow"><span>סה״כ לתשלום</span><strong>{{formatMoney total}}</strong></div>
+        <div class="totalRow">
+          <span>סה״כ לתשלום</span>
+          <strong>{{formatMoney total}}</strong>
+        </div>
       </div>
     </div>
 
     <div class="footer">
       <div>הערות: המחירים כוללים מע״מ.</div>
-      {{!-- מציג את שם העסק בתחתית המסך --}}
       <div>{{quote.businessName}}</div>
     </div>
 
