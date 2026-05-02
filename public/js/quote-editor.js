@@ -945,6 +945,33 @@
     }
   });
 
+  suggestBox.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+  });
+
+  suggestBox.addEventListener('click', (e) => {
+    const pick = e.target.closest('[data-pick]');
+    if (!pick) return;
+
+    const idx = Number(pick.dataset.pick);
+    if (!Number.isFinite(idx) || !items[idx]) return;
+
+    const pickedUnit = toNumberOr(pick.dataset.unit, null);
+    const pickedPrice = clampMin(toNumberOr(pick.dataset.price, 0), 0);
+    const currentQty = Number(items[idx].qty) || 1;
+
+    items[idx].name = pick.dataset.name || '';
+    items[idx].qty = currentQty;
+    items[idx].baseUnit = pickedUnit;
+    items[idx].basePrice = pickedPrice;
+    items[idx].unit =
+      pickedUnit !== null ? String(pickedUnit * currentQty) : pick.dataset.unit || '1';
+    items[idx].price = pickedPrice;
+
+    hideSuggestions();
+    render();
+  });
+
   document.addEventListener('click', (e) => {
     if (!itemsArea.contains(e.target) && !suggestBox.contains(e.target)) {
       hideAllSuggestions();
