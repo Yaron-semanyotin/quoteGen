@@ -30,11 +30,11 @@
       font-family: "Noto Sans Hebrew", Arial, sans-serif;
       color: var(--text);
       direction: rtl;
+      height: fit-content;
     }
 
     .page{
       width: 100%;
-      min-height: auto;
       margin: 0;
       background: var(--bg);
       padding: 12mm;
@@ -115,6 +115,10 @@
       table-layout: fixed;
     }
 
+    thead{
+      display: table-row-group;
+    }
+
     colgroup col:nth-child(1){ width: 38%; }
     colgroup col:nth-child(2){ width: 14%; }
     colgroup col:nth-child(3){ width: 16%; }
@@ -188,6 +192,8 @@
       display: flex;
       justify-content: space-between;
       gap: 12px;
+      break-before: avoid;
+      page-break-before: avoid;
     }
 
     @page{
@@ -201,11 +207,11 @@
         margin: 0;
         padding: 0;
         background: #fff;
+        height: fit-content;
       }
 
       .page{
         width: 100%;
-        min-height: auto;
         margin: 0;
         padding: 12mm;
         box-shadow: none;
@@ -264,13 +270,19 @@
       <tbody>
         {{#if quote.items.length}}
           {{#each quote.items}}
-            <tr>
-              <td class="text">{{this.name}}</td>
-              <td class="num">{{this.qty}}</td>
-              <td class="text centerCell">{{this.unit}}</td>
-              <td class="num">{{formatMoney this.price}}</td>
-              <td class="num">{{formatMoney (calcLineTotal this.qty this.price)}}</td>
-            </tr>
+            {{#if (eq this.type "header")}}
+              <tr>
+                <td colspan="5" style="font-weight:700; font-size:12px; background:{{../quote.themeColor}}; color:#111; padding:6px 8px; text-align:center; border-bottom:2px solid {{../quote.themeColor}};">{{this.name}}</td>
+              </tr>
+            {{else}}
+              <tr>
+                <td class="text">{{this.name}}</td>
+                <td class="num">{{this.qty}}</td>
+                <td class="text centerCell">{{this.unit}}</td>
+                <td class="num">{{formatMoney this.price}}</td>
+                <td class="num">{{formatMoney (calcLineTotal this.qty this.price)}}</td>
+              </tr>
+            {{/if}}
           {{/each}}
         {{else}}
           <tr>
@@ -280,18 +292,20 @@
       </tbody>
     </table>
 
-    <div class="totals">
-      <div class="totalBox">
-        <div class="totalRow">
-          <span>סה״כ לתשלום</span>
-          <strong>{{formatMoney total}}</strong>
+    <div style="break-inside: avoid; page-break-inside: avoid;">
+      <div class="totals">
+        <div class="totalBox">
+          <div class="totalRow">
+            <span>סה״כ לתשלום</span>
+            <strong>{{formatMoney total}}</strong>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="footer">
-      <div>הערות: המחירים כוללים מע״מ.</div>
-      <div>{{quote.businessName}}</div>
+      <div class="footer">
+        <div>הערות: המחירים כוללים מע״מ.</div>
+        <div>{{quote.businessName}}</div>
+      </div>
     </div>
 
   </div>

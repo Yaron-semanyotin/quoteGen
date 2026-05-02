@@ -19,6 +19,13 @@
           <div class="row">
             <a class="btn" href="/quotes/{{this._id}}/edit">עריכה</a>
 
+            <button class="btn" type="button"
+              data-id="{{this._id}}"
+              data-title="{{this.title}}"
+              onclick="shareOrDownloadPdf(this.dataset.id, this.dataset.title, this)">
+              הורד / שתף PDF
+            </button>
+
             <form method="post" action="/quotes/{{this._id}}/delete" style="display:inline;">
               <button class="btn btn-danger" type="submit"
                 onclick="return confirm('למחוק את הצעת המחיר הזאת?');">

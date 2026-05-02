@@ -19,5 +19,10 @@
     {{!-- views של ה html פה זה המקוום שבו מוזרק --}}
     {{{body}}}
   </main>
+  <script>
+    function shareOrDownloadPdf(quoteId, title, btn) {
+      window.open('/quotes/' + quoteId + '/pdf?inline=1', '_blank');
+    }
+  </script>
 </body>
 </html>

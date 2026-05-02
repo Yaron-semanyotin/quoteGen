@@ -4,12 +4,13 @@ const mongoose = require('mongoose');
 
 const itemSchema = new mongoose.Schema(
   {
-    name: {type: String, required: true, trim: true},
-    unit: {type: String, required: true, default: 'יחידה', trim: true},
-    price: {type: Number, required: true, min: 0},
-    qty: {type: Number, required: true, min: 0},
+    type:  { type: String, default: 'item' },
+    name:  { type: String, required: true, trim: true },
+    unit:  { type: String, default: '', trim: true },
+    price: { type: Number, default: 0, min: 0 },
+    qty:   { type: Number, default: 0, min: 0 },
   },
-  {_id: false}
+  { _id: false }
 );
 
 const quoteSchema = new mongoose.Schema(

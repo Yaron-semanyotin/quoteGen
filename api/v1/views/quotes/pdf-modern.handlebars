@@ -14,12 +14,14 @@
       box-sizing: border-box;
     }
 
+    html,
     body{
       font-family: "Noto Sans Hebrew", Arial, sans-serif;
       direction: rtl;
       margin: 0;
       color:#111;
       padding: 18px;
+      height: fit-content;
     }
 
     .card{
@@ -66,6 +68,10 @@
       table-layout: fixed;
     }
 
+    thead{
+      display: table-row-group;
+    }
+
     colgroup col:nth-child(1){ width:44%; }
     colgroup col:nth-child(2){ width:10%; }
     colgroup col:nth-child(3){ width:14%; }
@@ -101,6 +107,8 @@
       font-weight: 700;
       font-size: 14px;
       text-align:left;
+      break-before: avoid;
+      page-break-before: avoid;
     }
 
     .logo{
@@ -148,13 +156,19 @@
       <tbody>
         {{#if quote.items.length}}
           {{#each quote.items}}
-            <tr>
-              <td>{{{hardBreakEvery this.name 20}}}</td>
-              <td class="numCell">{{this.qty}}</td>
-              <td class="centerCell">{{{hardBreakEvery this.unit 20}}}</td>
-              <td class="numCell">{{formatMoney this.price}}</td>
-              <td class="numCell">{{calcLineTotal this.qty this.price}}</td>
-            </tr>
+            {{#if (eq this.type "header")}}
+              <tr>
+                <td colspan="5" style="font-weight:700; font-size:12px; background:{{../quote.themeColor}}; color:#111; padding:6px 8px; text-align:center; border-bottom:2px solid {{../quote.themeColor}};">{{this.name}}</td>
+              </tr>
+            {{else}}
+              <tr>
+                <td>{{{hardBreakEvery this.name 20}}}</td>
+                <td class="numCell">{{this.qty}}</td>
+                <td class="centerCell">{{{hardBreakEvery this.unit 20}}}</td>
+                <td class="numCell">{{formatMoney this.price}}</td>
+                <td class="numCell">{{calcLineTotal this.qty this.price}}</td>
+              </tr>
+            {{/if}}
           {{/each}}
         {{else}}
           <tr>
@@ -164,7 +178,7 @@
       </tbody>
     </table>
 
-    <div class="total">
+    <div class="total" style="break-inside: avoid; page-break-inside: avoid;">
       סה״כ לתשלום: {{formatMoney total}}
     </div>
   </div>

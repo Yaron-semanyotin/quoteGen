@@ -57,7 +57,10 @@
 
       <div class="row-between">
         <h2 class="h2">שורות</h2>
-        <button class="btn" type="button" id="addItemBtn">+ הוסף שורה</button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn" type="button" id="addHeaderBtn">+ כותרת</button>
+          <button class="btn" type="button" id="addItemBtn">+ הוסף שורה</button>
+        </div>
       </div>
 
       <!--מייצר שורות דינמיות dom ב-->
@@ -75,6 +78,15 @@
         <button class="btn btn-primary" type="submit" onclick="document.getElementById('actionField').value='saveAndPdf'">
           שמור + הורד PDF
         </button>
+
+        {{#if isEdit}}
+          <button class="btn" type="button"
+            data-id="{{quote._id}}"
+            data-title="{{quote.title}}"
+            onclick="shareOrDownloadPdf(this.dataset.id, this.dataset.title, this)">
+            שתף / הורד PDF
+          </button>
+        {{/if}}
 
 
         <!-- כפתור הורדה רק בעריכה -->

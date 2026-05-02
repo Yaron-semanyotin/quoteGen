@@ -7,6 +7,7 @@
   const form = document.getElementById('quoteForm');
   const itemsArea = document.getElementById('itemsArea');
   const addItemBtn = document.getElementById('addItemBtn');
+  const addHeaderBtn = document.getElementById('addHeaderBtn');
   const itemsJsonInput = document.getElementById('itemsJson');
   const previewBox = document.getElementById('previewBox');
 
@@ -17,6 +18,21 @@
 
   const PRODUCTS_CACHE_KEY = 'quote_products_cache_v1';
   let productsCache = [];
+  let draggedIdx = null;
+
+  const suggestBox = document.createElement('div');
+  suggestBox.style.cssText = `
+    position: fixed;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 10px 22px rgba(0,0,0,.1);
+    overflow-y: auto;
+    max-height: 220px;
+    display: none;
+    z-index: 99999;
+  `;
+  document.body.appendChild(suggestBox);
 
   function loadProductsCache() {
     try {
@@ -108,59 +124,158 @@
     render();
   }
 
+  function addHeader() {
+    items.push({ type: 'header', name: '' });
+    render();
+  }
+
+  function insertItemAfter(idx) {
+    items.splice(idx + 1, 0, {
+      name: '', qty: 1, unit: '1', price: 0, baseUnit: null, basePrice: 0,
+    });
+    render();
+  }
+
   function renderItems() {
     itemsArea.innerHTML = '';
 
     items.forEach((it, idx) => {
       const row = document.createElement('div');
+      row.dataset.rowIdx = String(idx);
 
       row.style.display = 'grid';
       row.style.gridTemplateColumns =
-        'minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) auto';
+        '20px minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) auto';
       row.style.gap = '8px';
       row.style.marginBottom = '8px';
       row.style.alignItems = 'center';
       row.style.minWidth = '0';
+      row.style.borderRadius = '6px';
+      row.style.borderTop = '2px solid transparent';
+      row.style.borderBottom = '2px solid transparent';
 
-      row.innerHTML = `
-        <div style="position:relative; min-width:0;">
-          <input
-            data-field="name"
-            data-idx="${idx}"
-            placeholder="שם מוצר"
-            value="${escapeHtml(it.name)}"
-            autocomplete="off"
-            style="width:100%; min-width:0;"
-          />
+      const dragHandle = `
+        <div data-drag="${idx}"
+             title="גרור להזזה"
+             style="cursor:grab; color:#9ca3af; font-size:18px; display:flex; align-items:center; justify-content:center; user-select:none; line-height:1;">⠿</div>`;
 
-          <div data-suggest="${idx}"
-               style="
-                 position:fixed;
-                 background:#fff;
-                 border:1px solid #e5e7eb;
-                 border-radius:10px;
-                 box-shadow:0 10px 22px rgba(0,0,0,.08);
-                 overflow:hidden;
-                 display:none;
-                 z-index:9999;
-               ">
+      const removeBtn = `
+        <div style="display:flex; gap:4px; align-items:center;">
+          <button type="button" data-action="insert" data-idx="${idx}" title="הוסף שורה אחרי"
+                  style="padding:4px 9px; border:1px solid #e2e8f0; border-radius:6px; background:#f8fafc; cursor:pointer; font-size:15px; line-height:1; color:#64748b;">+</button>
+          <button type="button" class="btn btn-danger" data-action="remove" data-idx="${idx}">✕</button>
+        </div>`;
+
+      if (it.type === 'header') {
+        row.innerHTML = `
+          ${dragHandle}
+          <input data-field="name" data-idx="${idx}"
+                 placeholder="כותרת סעיף (למשל: קינוחים, סלטים...)"
+                 value="${escapeHtml(it.name)}"
+                 autocomplete="off"
+                 style="grid-column: 2 / 6; font-weight: 700; font-size: 14px;
+                        background: #f8fafc; border: 1.5px dashed #94a3b8;
+                        border-radius: 6px; padding: 6px 10px; min-width: 0;" />
+          ${removeBtn}
+        `;
+      } else {
+        row.innerHTML = `
+          ${dragHandle}
+          <div style="position:relative; min-width:0;">
+            <input
+              data-field="name"
+              data-idx="${idx}"
+              placeholder="שם מוצר"
+              value="${escapeHtml(it.name)}"
+              autocomplete="off"
+              style="width:100%; min-width:0;"
+            />
           </div>
-        </div>
+          <input data-field="qty" data-idx="${idx}"
+                 type="number" min="0" step="1" value="${it.qty}"
+                 style="width:100%; min-width:0;" />
+          <input data-field="unit" data-idx="${idx}"
+                 placeholder="יחידה / שעה" value="${escapeHtml(it.unit)}"
+                 style="width:100%; min-width:0;" />
+          <input data-field="price" data-idx="${idx}"
+                 type="number" min="0" step="0.01" value="${it.price}"
+                 style="width:100%; min-width:0;" />
+          ${removeBtn}
+        `;
+      }
 
-        <input data-field="qty" data-idx="${idx}"
-               type="number" min="0" step="1" value="${it.qty}"
-               style="width:100%; min-width:0;" />
+      const handle = row.querySelector(`[data-drag="${idx}"]`);
 
-        <input data-field="unit" data-idx="${idx}"
-               placeholder="יחידה / שעה" value="${escapeHtml(it.unit)}"
-               style="width:100%; min-width:0;" />
+      handle.addEventListener('mousedown', () => {
+        row.draggable = true;
+        document.addEventListener('mouseup', () => { row.draggable = false; }, { once: true });
+      });
 
-        <input data-field="price" data-idx="${idx}"
-               type="number" min="0" step="0.01" value="${it.price}"
-               style="width:100%; min-width:0;" />
+      row.addEventListener('dragstart', (e) => {
+        draggedIdx = idx;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(idx));
+        setTimeout(() => { row.style.opacity = '0.4'; }, 0);
+      });
 
-        <button type="button" class="btn btn-danger" data-action="remove" data-idx="${idx}">✕</button>
-      `;
+      row.addEventListener('dragend', () => {
+        row.style.opacity = '';
+        row.draggable = false;
+        draggedIdx = null;
+        itemsArea.querySelectorAll('[data-row-idx]').forEach((r) => {
+          r.style.borderTop = '2px solid transparent';
+          r.style.borderBottom = '2px solid transparent';
+        });
+      });
+
+      row.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (draggedIdx === null || draggedIdx === idx) return;
+
+        const rect = row.getBoundingClientRect();
+        const above = e.clientY < rect.top + rect.height / 2;
+
+        itemsArea.querySelectorAll('[data-row-idx]').forEach((r) => {
+          r.style.borderTop = '2px solid transparent';
+          r.style.borderBottom = '2px solid transparent';
+        });
+
+        if (above) {
+          row.style.borderTop = '2px solid #6366f1';
+          row.style.borderBottom = '2px solid transparent';
+        } else {
+          row.style.borderBottom = '2px solid #6366f1';
+          row.style.borderTop = '2px solid transparent';
+        }
+      });
+
+      row.addEventListener('dragleave', (e) => {
+        if (!row.contains(e.relatedTarget)) {
+          row.style.borderTop = '2px solid transparent';
+          row.style.borderBottom = '2px solid transparent';
+        }
+      });
+
+      row.addEventListener('drop', (e) => {
+        e.preventDefault();
+        row.style.borderTop = '2px solid transparent';
+        row.style.borderBottom = '2px solid transparent';
+
+        if (draggedIdx === null || draggedIdx === idx) return;
+
+        const rect = row.getBoundingClientRect();
+        const dropAbove = e.clientY < rect.top + rect.height / 2;
+
+        const dragged = items.splice(draggedIdx, 1)[0];
+
+        let insertAt = idx;
+        if (draggedIdx < idx) insertAt = idx - 1;
+        if (!dropAbove) insertAt += 1;
+
+        items.splice(insertAt, 0, dragged);
+        draggedIdx = null;
+        render();
+      });
 
       itemsArea.appendChild(row);
     });
@@ -187,6 +302,13 @@
     const rowsHtml = items.length
       ? items
           .map((it) => {
+            if (it.type === 'header') {
+              return `
+                <tr>
+                  <td colspan="5" class="section-header">${escapeHtml(it.name || '')}</td>
+                </tr>
+              `;
+            }
             const qty = Number(it.qty) || 0;
             const price = Number(it.price) || 0;
 
@@ -304,6 +426,16 @@
         .emptyRow {
           text-align:center;
           opacity:.7;
+        }
+
+        .section-header {
+          font-weight: 700;
+          font-size: 13px;
+          background: ${themeColor};
+          color: #111;
+          padding: 6px 8px;
+          text-align: center;
+          border-bottom: 2px solid ${themeColor};
         }
 
         .cell-name {
@@ -542,6 +674,7 @@
 
   let suggestTimer = null;
   let lastSuggestIdx = null;
+  let activeSuggestItem = -1;
 
   function fetchSuggestions(q, cb) {
     const text = String(q || '').trim().toLowerCase();
@@ -553,89 +686,101 @@
 
     const result = productsCache
       .filter((p) => String(p.name || '').toLowerCase().includes(text))
-      .slice(0, 10);
+      .slice(0, 6);
 
     cb(result);
   }
 
-  function getSuggestBox(idx) {
-    return itemsArea.querySelector(`[data-suggest="${idx}"]`);
+  function getNameInput(idx) {
+    return itemsArea.querySelector(`[data-field="name"][data-idx="${idx}"]`);
   }
 
   function positionSuggestBox(idx) {
-    const input = itemsArea.querySelector(`[data-field="name"][data-idx="${idx}"]`);
-    const box = getSuggestBox(idx);
-
-    if (!input || !box) return;
+    const input = getNameInput(idx);
+    if (!input) return;
 
     const rect = input.getBoundingClientRect();
+    const boxHeight = Math.min(suggestBox.scrollHeight, 220) || 220;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
 
-    box.style.position = 'fixed';
-    box.style.top = `${rect.bottom + 4}px`;
-    box.style.left = `${rect.left}px`;
-    box.style.right = 'auto';
-    box.style.width = `${rect.width}px`;
-    box.style.maxHeight = '220px';
-    box.style.overflowY = 'auto';
-    box.style.zIndex = '9999';
-  }
+    suggestBox.style.left = `${rect.left}px`;
+    suggestBox.style.width = `${rect.width}px`;
 
-  function hideSuggestions(idx) {
-    const box = getSuggestBox(idx);
-    if (!box) return;
-
-    box.style.display = 'none';
-    box.innerHTML = '';
-
-    if (lastSuggestIdx === idx) {
-      lastSuggestIdx = null;
+    if (spaceBelow >= boxHeight + 8 || spaceBelow >= spaceAbove) {
+      suggestBox.style.top = `${rect.bottom + 4}px`;
+      suggestBox.style.bottom = 'auto';
+    } else {
+      suggestBox.style.bottom = `${window.innerHeight - rect.top + 4}px`;
+      suggestBox.style.top = 'auto';
     }
   }
 
-  function hideAllSuggestions() {
-    if (lastSuggestIdx !== null) {
-      hideSuggestions(lastSuggestIdx);
-    }
-
+  function hideSuggestions() {
+    suggestBox.style.display = 'none';
+    suggestBox.innerHTML = '';
+    activeSuggestItem = -1;
     lastSuggestIdx = null;
   }
 
-  function showSuggestions(idx, list) {
-    const box = getSuggestBox(idx);
-    if (!box) return;
+  function hideAllSuggestions() {
+    hideSuggestions();
+  }
 
+  function highlightSuggestItem() {
+    suggestBox.querySelectorAll('[data-item-i]').forEach((el) => {
+      el.style.background = Number(el.dataset.itemI) === activeSuggestItem ? '#eef2ff' : '';
+    });
+  }
+
+  function showSuggestions(idx, list) {
     if (!Array.isArray(list) || list.length === 0) {
-      hideSuggestions(idx);
+      hideSuggestions();
       return;
     }
 
-    box.innerHTML = list
-      .map((p) => {
+    activeSuggestItem = -1;
+
+    suggestBox.innerHTML = list
+      .map((p, i) => {
         const name = escapeHtml(p.name || '');
         const unit = escapeHtml(p.unit || '1');
         const price = Number(p.price) || 0;
 
         return `
           <div data-pick="${idx}"
+               data-item-i="${i}"
                data-id="${escapeHtml(p._id || '')}"
                data-name="${name}"
                data-price="${price}"
                data-unit="${unit}"
-               style="padding:10px 10px;cursor:pointer;border-bottom:1px solid #f1f5f9;">
-            <b>${name}</b>
-            <span style="opacity:.7"> — ${price.toFixed(2)} ₪ / ${unit}</span>
+               style="padding:9px 12px; cursor:pointer; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center; gap:8px; transition:background 0.1s;">
+            <span style="font-weight:600; font-size:14px;">${name}</span>
+            <span style="opacity:.55; font-size:12px; white-space:nowrap;">${price.toFixed(2)} ₪ / ${unit}</span>
           </div>
         `;
       })
       .join('');
 
-    positionSuggestBox(idx);
+    suggestBox.onmouseover = (e) => {
+      const item = e.target.closest('[data-item-i]');
+      if (!item) return;
+      activeSuggestItem = Number(item.dataset.itemI);
+      highlightSuggestItem();
+    };
 
-    box.style.display = 'block';
+    suggestBox.onmouseleave = () => {
+      activeSuggestItem = -1;
+      highlightSuggestItem();
+    };
+
+    suggestBox.style.display = 'block';
+    positionSuggestBox(idx);
     lastSuggestIdx = idx;
   }
 
   addItemBtn.addEventListener('click', () => addItem());
+  if (addHeaderBtn) addHeaderBtn.addEventListener('click', () => addHeader());
 
   itemsArea.addEventListener('scroll', () => {
     if (lastSuggestIdx !== null) {
@@ -705,12 +850,14 @@
       renderPreview();
       syncHiddenItemsJson();
 
+      if (items[idx].type === 'header') return;
+
       const q = String(el.value || '').trim();
 
       clearTimeout(suggestTimer);
 
       if (q.length < 2) {
-        hideSuggestions(idx);
+        hideSuggestions();
         return;
       }
 
@@ -722,7 +869,41 @@
     }
   });
 
+  itemsArea.addEventListener('keydown', (e) => {
+    const el = e.target;
+    const field = el.dataset.field;
+
+    if (field !== 'name') return;
+    if (suggestBox.style.display === 'none') return;
+
+    const rows = suggestBox.querySelectorAll('[data-item-i]');
+    if (!rows.length) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeSuggestItem = Math.min(activeSuggestItem + 1, rows.length - 1);
+      highlightSuggestItem();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeSuggestItem = Math.max(activeSuggestItem - 1, 0);
+      highlightSuggestItem();
+    } else if (e.key === 'Enter' && activeSuggestItem >= 0) {
+      e.preventDefault();
+      const active = rows[activeSuggestItem];
+      if (active) active.click();
+    }
+  });
+
   itemsArea.addEventListener('click', (e) => {
+    const insertBtn = e.target.closest('[data-action="insert"]');
+
+    if (insertBtn) {
+      const idx = Number(insertBtn.dataset.idx);
+      if (!Number.isFinite(idx)) return;
+      insertItemAfter(idx);
+      return;
+    }
+
     const removeBtn = e.target.closest('[data-action="remove"]');
 
     if (removeBtn) {
@@ -758,14 +939,14 @@
 
       items[idx].price = pickedPrice;
 
-      hideSuggestions(idx);
+      hideSuggestions();
       render();
       return;
     }
   });
 
   document.addEventListener('click', (e) => {
-    if (!itemsArea.contains(e.target)) {
+    if (!itemsArea.contains(e.target) && !suggestBox.contains(e.target)) {
       hideAllSuggestions();
     }
   });

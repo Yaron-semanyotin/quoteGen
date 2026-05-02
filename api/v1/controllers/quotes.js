@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const https = require('https');
+const http = require('http');
 const Quote = require('../models/quotes');
 const User = require('../models/users');
 const puppeteer = require('puppeteer');
@@ -6,16 +8,32 @@ const puppeteer = require('puppeteer');
 let browserPromise = null;
 
 async function getBrowser() {
-  if (!browserPromise) {
-    browserPromise = puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-      ],
-    });
+  if (browserPromise) {
+    try {
+      const browser = await browserPromise;
+      if (browser.connected) return browser;
+    } catch (_) {}
+    browserPromise = null;
   }
+
+  browserPromise = puppeteer.launch({
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--disable-extensions',
+      '--disable-background-networking',
+      '--disable-default-apps',
+      '--mute-audio',
+      '--no-default-browser-check',
+      '--no-first-run',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding',
+      '--disable-background-timer-throttling',
+    ],
+  });
 
   return browserPromise;
 }
@@ -31,6 +49,42 @@ async function closeBrowser() {
   } finally {
     browserPromise = null;
   }
+}
+
+function fetchImageAsBase64(url, redirectCount = 0) {
+  if (redirectCount > 5) return Promise.reject(new Error('Too many redirects'));
+
+  return new Promise((resolve, reject) => {
+    const protocol = url.startsWith('https') ? https : http;
+    const reqTimeout = setTimeout(() => reject(new Error('Image fetch timeout')), 15000);
+
+    const req = protocol.get(url, (res) => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        clearTimeout(reqTimeout);
+        res.resume();
+        fetchImageAsBase64(res.headers.location, redirectCount + 1).then(resolve, reject);
+        return;
+      }
+
+      if (res.statusCode !== 200) {
+        clearTimeout(reqTimeout);
+        res.resume();
+        return reject(new Error(`HTTP ${res.statusCode}`));
+      }
+
+      const mime = (res.headers['content-type'] || 'image/jpeg').split(';')[0].trim();
+      const chunks = [];
+
+      res.on('data', (chunk) => chunks.push(chunk));
+      res.on('end', () => {
+        clearTimeout(reqTimeout);
+        resolve(`data:${mime};base64,${Buffer.concat(chunks).toString('base64')}`);
+      });
+      res.on('error', (err) => { clearTimeout(reqTimeout); reject(err); });
+    });
+
+    req.on('error', (err) => { clearTimeout(reqTimeout); reject(err); });
+  });
 }
 
 process.once('SIGINT', async () => {
@@ -63,16 +117,17 @@ function validateItems(items) {
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-
     const name = String(item.name || '').trim();
-    const unit = String(item.unit || '').trim();
-
-    const price = Number(item.price);
-    const qty = Number(item.qty);
 
     if (!name) {
-      return `חובה למלא שם מוצר בשורה ${i + 1}`;
+      return `חובה למלא שם בשורה ${i + 1}`;
     }
+
+    if (item.type === 'header') continue;
+
+    const unit = String(item.unit || '').trim();
+    const price = Number(item.price);
+    const qty = Number(item.qty);
 
     if (!unit) {
       return `חובה למלא יחידה בשורה ${i + 1}`;
@@ -91,12 +146,17 @@ function validateItems(items) {
 }
 
 function normalizeItems(items) {
-  return items.map((item) => ({
-    name: String(item.name || '').trim(),
-    unit: String(item.unit || '').trim(),
-    price: Number(item.price),
-    qty: Number(item.qty),
-  }));
+  return items.map((item) => {
+    if (item.type === 'header') {
+      return { type: 'header', name: String(item.name || '').trim() };
+    }
+    return {
+      name: String(item.name || '').trim(),
+      unit: String(item.unit || '').trim(),
+      price: Number(item.price),
+      qty: Number(item.qty),
+    };
+  });
 }
 
 function sanitizeFilename(name) {
@@ -424,6 +484,14 @@ const quotesCtrl = {
 
       applyUserSettingsToQuote(quote, user);
 
+      if (quote.logoUrl) {
+        try {
+          quote.logoUrl = await fetchImageAsBase64(quote.logoUrl);
+        } catch (err) {
+          console.warn('Logo pre-fetch failed, using URL fallback:', err.message);
+        }
+      }
+
       const total = calcQuoteTotal(quote.items);
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       const viewName = resolvePdfView(quote.templateKey);
@@ -447,24 +515,15 @@ const quotesCtrl = {
       const browser = await getBrowser();
       page = await browser.newPage();
 
+      page.setDefaultNavigationTimeout(60000);
+      page.setDefaultTimeout(60000);
+
       await page.setContent(html, {
-        waitUntil: 'networkidle2',
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
       });
 
-      await page.evaluate(async () => {
-        const images = Array.from(document.images);
-
-        await Promise.all(
-          images.map((img) => {
-            if (img.complete) return Promise.resolve();
-
-            return new Promise((resolve) => {
-              img.onload = resolve;
-              img.onerror = resolve;
-            });
-          })
-        );
-      });
+      await page.evaluate(() => document.fonts.ready);
 
       await page.emulateMediaType('print');
 
@@ -483,10 +542,11 @@ const quotesCtrl = {
       const safeTitle = sanitizeFilename(quote.title || 'quote');
       const fileName = `${safeTitle}.pdf`;
 
+      const isInline = req.query.inline === '1';
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader(
         'Content-Disposition',
-        `attachment; filename="quote.pdf"; filename*=UTF-8''${encodeURIComponent(fileName)}`
+        `${isInline ? 'inline' : 'attachment'}; filename="quote.pdf"; filename*=UTF-8''${encodeURIComponent(fileName)}`
       );
       res.setHeader('Content-Length', pdfBuffer.length);
       res.setHeader('X-Content-Type-Options', 'nosniff');
